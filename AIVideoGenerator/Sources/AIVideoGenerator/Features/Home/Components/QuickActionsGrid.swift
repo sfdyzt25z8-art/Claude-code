@@ -38,6 +38,8 @@ struct QuickActionsGrid: View {
                         }
                     }
                     .buttonStyle(ScaleButtonStyle())
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(action.title)
                 }
             }
         }

@@ -44,6 +44,7 @@ private struct ProjectCard: View {
                         .background(.black.opacity(0.35), in: Circle())
                 }
                 .padding(6)
+                .accessibilityLabel(project.isFavorite ? "Remove from favorites" : "Add to favorites")
             }
 
             Text(project.name)

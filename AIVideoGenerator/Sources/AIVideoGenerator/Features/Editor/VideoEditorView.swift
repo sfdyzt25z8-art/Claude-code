@@ -111,6 +111,8 @@ struct VideoEditorView: View {
             .foregroundStyle(enabled ? Theme.primaryText : Theme.secondaryText)
         }
         .disabled(!enabled)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
     }
 
     @ViewBuilder

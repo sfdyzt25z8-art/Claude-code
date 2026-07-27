@@ -44,18 +44,39 @@ private struct SplashView: View {
 
 private struct MainTabView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @State private var selectedSection: AppSection? = .home
+
+    private enum AppSection: String, Identifiable, Hashable, CaseIterable {
+        case home, projects, settings
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .home: return "Home"
+            case .projects: return "Projects"
+            case .settings: return "Settings"
+            }
+        }
+
+        var symbolName: String {
+            switch self {
+            case .home: return "house.fill"
+            case .projects: return "folder.fill"
+            case .settings: return "gearshape.fill"
+            }
+        }
+    }
 
     var body: some View {
         if horizontalSizeClass == .regular {
             NavigationSplitView {
-                List {
-                    Label("Home", systemImage: "house.fill")
-                    Label("Projects", systemImage: "folder.fill")
-                    Label("Settings", systemImage: "gearshape.fill")
+                List(AppSection.allCases, selection: $selectedSection) { section in
+                    Label(section.title, systemImage: section.symbolName)
+                        .tag(section)
                 }
                 .navigationTitle("AI Video Generator")
             } detail: {
-                HomeView()
+                detailView(for: selectedSection ?? .home)
             }
         } else {
             TabView {
@@ -69,6 +90,15 @@ private struct MainTabView: View {
                     .tabItem { Label("Settings", systemImage: "gearshape.fill") }
             }
             .tint(Color(hex: 0x6C5CE7))
+        }
+    }
+
+    @ViewBuilder
+    private func detailView(for section: AppSection) -> some View {
+        switch section {
+        case .home: HomeView()
+        case .projects: ProjectsView()
+        case .settings: SettingsView()
         }
     }
 }
