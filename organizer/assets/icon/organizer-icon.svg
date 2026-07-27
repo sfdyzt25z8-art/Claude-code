@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16264d"/>
+      <stop offset="55%" stop-color="#0f1e3d"/>
+      <stop offset="100%" stop-color="#0b0f19"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="18%" r="60%">
+      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#d4af37" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f2d675"/>
+      <stop offset="100%" stop-color="#c79a2e"/>
+    </linearGradient>
+    <linearGradient id="shelfWood" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#274a86"/>
+      <stop offset="100%" stop-color="#1c3766"/>
+    </linearGradient>
+  </defs>
+
+  <!-- app icon background -->
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="224" fill="url(#glow)"/>
+
+  <!-- bookshelf frame -->
+  <g>
+    <rect x="182" y="360" width="660" height="470" rx="28" fill="url(#shelfWood)" opacity="0.9"/>
+    <!-- shelf boards -->
+    <rect x="200" y="520" width="624" height="18" rx="9" fill="#0f1e3d"/>
+    <rect x="200" y="680" width="624" height="18" rx="9" fill="#0f1e3d"/>
+
+    <!-- top shelf books -->
+    <g>
+      <rect x="222" y="392" width="46" height="118" rx="6" fill="#e8ecf5"/>
+      <rect x="276" y="378" width="40" height="132" rx="6" fill="url(#gold)"/>
+      <rect x="324" y="400" width="44" height="110" rx="6" fill="#7ea3e0"/>
+      <rect x="376" y="386" width="38" height="124" rx="6" fill="#e8ecf5"/>
+      <rect x="422" y="404" width="46" height="106" rx="6" fill="#496fae"/>
+      <rect x="478" y="390" width="40" height="120" rx="6" fill="url(#gold)"/>
+      <rect x="526" y="398" width="44" height="112" rx="6" fill="#e8ecf5"/>
+      <rect x="578" y="382" width="38" height="128" rx="6" fill="#7ea3e0"/>
+      <rect x="624" y="406" width="46" height="104" rx="6" fill="#496fae"/>
+      <rect x="678" y="392" width="40" height="118" rx="6" fill="#e8ecf5"/>
+      <rect x="726" y="400" width="44" height="110" rx="6" fill="url(#gold)"/>
+      <rect x="778" y="386" width="34" height="124" rx="6" fill="#7ea3e0"/>
+    </g>
+
+    <!-- middle shelf books -->
+    <g>
+      <rect x="222" y="556" width="42" height="112" rx="6" fill="#496fae"/>
+      <rect x="270" y="544" width="46" height="124" rx="6" fill="#e8ecf5"/>
+      <rect x="322" y="560" width="38" height="108" rx="6" fill="url(#gold)"/>
+      <rect x="366" y="548" width="44" height="120" rx="6" fill="#7ea3e0"/>
+      <!-- gap where person is retrieving a book -->
+      <rect x="500" y="552" width="40" height="116" rx="6" fill="#e8ecf5"/>
+      <rect x="546" y="562" width="44" height="106" rx="6" fill="#496fae"/>
+      <rect x="596" y="546" width="38" height="122" rx="6" fill="url(#gold)"/>
+      <rect x="640" y="558" width="46" height="110" rx="6" fill="#7ea3e0"/>
+      <rect x="692" y="550" width="40" height="118" rx="6" fill="#e8ecf5"/>
+      <rect x="738" y="562" width="44" height="106" rx="6" fill="#496fae"/>
+    </g>
+
+    <!-- bottom shelf books -->
+    <g>
+      <rect x="222" y="716" width="44" height="96" rx="6" fill="url(#gold)"/>
+      <rect x="272" y="704" width="40" height="108" rx="6" fill="#e8ecf5"/>
+      <rect x="318" y="718" width="46" height="94" rx="6" fill="#7ea3e0"/>
+      <rect x="370" y="708" width="38" height="104" rx="6" fill="#496fae"/>
+      <rect x="414" y="716" width="44" height="96" rx="6" fill="#e8ecf5"/>
+      <rect x="464" y="702" width="40" height="110" rx="6" fill="url(#gold)"/>
+      <rect x="510" y="718" width="46" height="94" rx="6" fill="#7ea3e0"/>
+      <rect x="562" y="708" width="38" height="104" rx="6" fill="#e8ecf5"/>
+      <rect x="606" y="716" width="44" height="96" rx="6" fill="#496fae"/>
+      <rect x="656" y="704" width="40" height="108" rx="6" fill="url(#gold)"/>
+      <rect x="702" y="718" width="46" height="94" rx="6" fill="#e8ecf5"/>
+      <rect x="754" y="710" width="38" height="102" rx="6" fill="#7ea3e0"/>
+    </g>
+  </g>
+
+  <!-- person organizing the shelf -->
+  <g>
+    <!-- back leg -->
+    <rect x="560" y="700" width="26" height="120" rx="13" fill="#0b0f19"/>
+    <!-- front leg -->
+    <rect x="608" y="700" width="26" height="120" rx="13" fill="#101a30"/>
+    <!-- torso -->
+    <path d="M540 560 C540 500 596 470 630 470 C666 470 706 500 706 556 L706 700 C706 716 692 728 676 728 L568 728 C552 728 540 716 540 700 Z" fill="url(#gold)"/>
+    <!-- raised arm reaching to shelf -->
+    <path d="M676 500 C704 480 726 462 738 424 C744 406 764 400 776 414 C788 428 782 448 766 460 C742 480 716 502 696 522 Z" fill="url(#gold)"/>
+    <!-- other arm -->
+    <path d="M556 560 C534 576 520 600 520 628 C520 644 534 656 550 652 C566 648 574 630 574 612 C574 592 566 574 556 560 Z" fill="#c79a2e"/>
+    <!-- book in hand -->
+    <rect x="742" y="392" width="52" height="66" rx="8" fill="#e8ecf5" transform="rotate(18 768 425)"/>
+    <!-- head -->
+    <circle cx="626" cy="430" r="54" fill="#f2d675"/>
+  </g>
+
+  <!-- floor shadow -->
+  <ellipse cx="512" cy="850" rx="300" ry="26" fill="#000000" opacity="0.25"/>
+</svg>
