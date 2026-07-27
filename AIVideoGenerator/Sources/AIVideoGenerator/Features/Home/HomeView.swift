@@ -5,6 +5,7 @@ struct HomeView: View {
     @State private var viewModel: HomeViewModel?
     @State private var showingVideoGenerator = false
     @State private var showingThumbnailGenerator = false
+    @State private var showingEditor = false
     @State private var selectedTemplate: PromptTemplate?
 
     var body: some View {
@@ -35,6 +36,9 @@ struct HomeView: View {
             .sheet(isPresented: $showingThumbnailGenerator) {
                 ThumbnailGeneratorView()
             }
+            .sheet(isPresented: $showingEditor) {
+                EditorLaunchView()
+            }
         }
     }
 
@@ -53,7 +57,7 @@ struct HomeView: View {
                 selectedTemplate = template
             }
 
-            QuickActionsGrid()
+            QuickActionsGrid { showingEditor = true }
 
             if !viewModel.favoriteProjects.isEmpty {
                 RecentProjectsSection(

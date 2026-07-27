@@ -51,6 +51,9 @@ AVFoundation/server-side composition pipeline is the next step there).
   to a real (mock-backed) async job queue with live progress.
 - AI Thumbnail Generator flow with category selection.
 - Projects library: search, folder filter, favorites, swipe-to-delete.
+- **Video Editor**, working against a real video imported from Photos
+  (`EditorLaunchView`) — not against AI-generated output yet, since that
+  pipeline is still mocked. See "Video Editor internals" below.
 - Auth: Sign in with Apple (real `ASAuthorizationController` UI), Google and
   email/password flows (mocked pending real OAuth/backend wiring), Keychain-backed
   session storage.
@@ -58,19 +61,67 @@ AVFoundation/server-side composition pipeline is the next step there).
   account/sign-out, Privacy Policy / Terms of Service / Report Content screens.
 - Local persistence (`LocalProjectStore`, JSON on disk) — cloud sync is modeled
   in `SubscriptionPlan.cloudSyncEnabled` but not yet implemented.
-- Unit tests for request validation, scene decomposition, the queue manager, and
-  the Video Generator view model.
+- Unit tests for request validation, scene decomposition, the queue manager, the
+  Video Generator view model, and the editor's timeline/split/trim/reorder math.
 - GitHub Actions CI (`.github/workflows/ios-ci.yml`) that regenerates the Xcode
   project and runs a real `xcodebuild build`/`test` on every push — this is the
   actual compiler verification this environment could not run directly.
+
+## Video Editor internals
+
+`EditorProject` (`Core/Models/Editor/`) is a plain, Codable, AVFoundation-free
+model: an ordered list of `EditorClip`s (trim/speed/rotation/crop/color
+grade/effect/transition), an optional picture-in-picture layer, titles,
+captions, and audio tracks. `VideoCompositionBuilder`
+(`Services/Editor/VideoCompositionBuilder.swift`) turns that into a real
+`AVMutableComposition` + `AVMutableVideoComposition`:
+
+- Clips alternate across two composition video tracks so adjacent clips can
+  overlap (for cross-dissolve/fade transitions) without colliding on one track.
+- A custom `AVVideoCompositing` (`EditorVideoCompositor.swift`) composites every
+  active track per frame — applying crop, rotation, Ken-Burns zoom,
+  picture-in-picture placement, and per-clip Core Image effects
+  (`VideoEffectRenderer.swift`, built on the typed `CIFilterBuiltins` API rather
+  than string-keyed `CIFilter(name:)` to avoid a wrong-key runtime crash) —
+  because a custom compositor has to do all of that compositing itself; it
+  doesn't get the built-in compositor's layer-instruction handling for free.
+- Titles and captions are burned in via `AVVideoCompositionCoreAnimationTool`
+  (`CATextLayer`s with keyframed opacity), independent of the custom compositor.
+- Export (`VideoExporting.swift`) reuses the same composition through
+  `AVAssetExportSession`, so what you preview is what you export.
+- Automatic captions (`CaptionGenerating.swift`) are real, on-device
+  `SFSpeechRecognizer` transcription grouped into cues — not simulated.
+- Narration (`Services/Audio/NarrationSynthesizing.swift`) is real, on-device
+  `AVSpeechSynthesizer` output mixed in via `AudioMixBuilder`.
+
+**Known limitations, stated plainly:**
+
+- The crop/rotate/zoom/PiP transform geometry (`VideoGeometry.swift`) and the
+  custom compositor's coordinate-space handling were written carefully but
+  **have not been visually verified on a device or simulator** — this
+  environment has no Xcode toolchain to run it. Treat this as the first thing
+  to QA by eye before shipping.
+- Crop is fixed-aspect presets (1:1, 9:16, 4:5), not a free-drag rectangle.
+- "Choose bitrate" is implemented as an `AVAssetExportSession` quality preset
+  tier (Standard/High/Maximum), not a literal bits-per-second value —
+  `AVAssetExportSession` doesn't expose that; true custom bitrate needs an
+  `AVAssetWriter` pipeline instead.
+- Atmospheric/particle VFX (fire, smoke, fog, rain, snow, lightning, particles,
+  dust) and background music/ambient loops have real, working *pipelines*
+  (`VFXOverlayLibrary`, `MockMusicLibrary`, `AmbientSoundLibrary`) but resolve
+  every asset lookup to `nil` on purpose: this build doesn't bundle or license
+  any overlay footage or audio files. Selecting them in the editor is
+  currently a no-op rather than a silent wrong result — wiring real content
+  means bundling (or streaming) licensed assets and pointing these lookups at
+  them.
+- Voice cloning isn't implemented (only straightforward TTS narration).
 
 ## What's not yet built
 
 - Any real backend (REST API, database, job queue, moderation, rate limiting).
   `APIClient`/`Endpoint` define the contract; there is no server behind it yet.
-- Real AI provider integrations (only the offline mock exists).
-- Video editor (trim/split/merge/crop/color grade/VFX/transitions), sound
-  (music/narration/voice cloning/ambient), subtitles, and export pipeline.
+- Real AI provider integrations (only the offline mock exists) — so the editor
+  can't yet open an AI-generated video directly, only one imported from Photos.
 - Google Sign-In SDK and real backend-issued auth tokens (currently mocked).
 - Cloud sync and version history persistence.
 - App icon / launch screen assets, full accessibility pass, and iPad-specific
@@ -83,7 +134,9 @@ AIVideoGenerator/
   project.yml                  XcodeGen spec (source of truth for the Xcode project)
   Sources/AIVideoGenerator/
     App/                        Composition root, environment wiring, app entry point
-    Core/                       Domain models, errors, extensions, utilities
+    Core/
+      Models/                   Generation domain models
+      Models/Editor/            EditorProject, EditorClip, titles/captions/audio models
     DesignSystem/                Theme, typography, spacing, reusable components
     Networking/                  APIClient, Endpoint, NetworkError
     Services/
@@ -91,8 +144,11 @@ AIVideoGenerator/
       Auth/                       Auth protocol, mock implementation, Keychain
       Persistence/                Project storage protocol + local implementation
       JobQueue/                   Generation queue manager + scene stitching
+      Editor/                     Composition builder, custom compositor, effects,
+                                   captions, export, Photos save, video import
+      Audio/                      Audio mix builder, music catalog, narration synthesis
     Features/
-      Home/, VideoGenerator/, Thumbnail/, Projects/, Auth/, Settings/
+      Home/, VideoGenerator/, Thumbnail/, Projects/, Auth/, Settings/, Editor/
   Tests/AIVideoGeneratorTests/
   Resources/                     Bundled Privacy Policy / Terms of Service
 ```

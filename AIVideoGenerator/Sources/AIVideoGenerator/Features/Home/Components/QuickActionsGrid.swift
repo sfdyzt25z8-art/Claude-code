@@ -1,8 +1,12 @@
 import SwiftUI
 
 /// Grid of one-tap shortcuts (import, editor, subtitles, export) shown below the
-/// hero cards on the Home dashboard.
+/// hero cards on the Home dashboard. All four currently open the same Video
+/// Editor entry point (pick a video, then trim/caption/export it) since that's
+/// the one real, working flow behind them today.
 struct QuickActionsGrid: View {
+    let onSelect: () -> Void
+
     private let actions: [QuickAction] = [
         QuickAction(title: "Import Media", symbolName: "square.and.arrow.down"),
         QuickAction(title: "Video Editor", symbolName: "slider.horizontal.below.rectangle"),
@@ -18,9 +22,7 @@ struct QuickActionsGrid: View {
 
             LazyVGrid(columns: columns, spacing: Spacing.sm) {
                 ForEach(actions) { action in
-                    Button {
-                        // Routed to the relevant feature flow once implemented.
-                    } label: {
+                    Button(action: onSelect) {
                         VStack(spacing: Spacing.xs) {
                             Image(systemName: action.symbolName)
                                 .font(.system(size: 20, weight: .semibold))
