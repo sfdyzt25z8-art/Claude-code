@@ -1,0 +1,664 @@
+// Organizer - Prisma schema
+// PostgreSQL data model backing the Express API consumed by the web and mobile apps.
+// Primary auth identity lives in Firebase; `User.firebaseUid` links a local record
+// (used for relations, roles, and app data) to the Firebase account.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AppMode {
+  STUDENT
+  BUSINESS
+  PERSONAL
+}
+
+enum BusinessRole {
+  OWNER
+  EMPLOYEE
+}
+
+enum PersonalFocus {
+  LOSE_WEIGHT
+  GAIN_MUSCLE
+  FITNESS
+  PRODUCTIVITY
+  HABITS
+  READING
+  MENTAL_WELLNESS
+  LEARNING_SKILLS
+}
+
+enum Subject {
+  MATH
+  SCIENCE
+  ENGLISH
+  GEOGRAPHY
+  HISTORY
+  COMPUTER_SCIENCE
+  BUSINESS
+  ECONOMICS
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum ReadingStatus {
+  READING
+  COMPLETED
+  WISHLIST
+}
+
+enum MiniGame {
+  MEMORY_CHALLENGE
+  FOCUS_CHALLENGE
+  SUDOKU
+  LOGIC_PUZZLES
+  VOCABULARY_GAMES
+  MATH_BATTLE
+  SCIENCE_CHALLENGE
+}
+
+enum BudgetPeriod {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum MarketingStatus {
+  PLANNED
+  IN_PROGRESS
+  DONE
+}
+
+enum Academy {
+  MARKETING
+  BRANDING
+  SALES
+  LEADERSHIP
+  INVESTING
+  APP_DEVELOPMENT_REPLIT
+  AI_APP_DEVELOPMENT
+}
+
+enum CareerCategory {
+  CAREER_PLANNING
+  PRODUCTIVITY
+  TIME_MANAGEMENT
+  PROFESSIONAL_DEVELOPMENT
+  LEADERSHIP
+  GOAL_TRACKING
+}
+
+enum HabitFrequency {
+  DAILY
+  WEEKLY
+}
+
+enum CalendarCategory {
+  HOMEWORK
+  EXAM
+  BUSINESS
+  PERSONAL
+  HABIT
+  GOAL
+  READING
+  STUDY
+}
+
+enum NotificationCategory {
+  GOAL
+  HOMEWORK
+  EXAM
+  HABIT
+  READING
+  STUDY
+}
+
+enum Platform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+// ---------- Identity ----------
+
+model User {
+  id            String   @id @default(cuid())
+  firebaseUid   String   @unique
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  role          Role     @default(USER)
+  suspended     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  profile       Profile?
+  gamification  Gamification?
+  pushTokens    PushToken[]
+  notifications NotificationRecord[]
+  uploadedFiles UploadedFile[]
+
+  homework       Homework[]
+  grades         GradeEntry[]
+  studyPlanItems StudyPlanItem[]
+  exams          Exam[]
+  readingEntries ReadingEntry[]
+  studySessions  StudySession[]
+  quizzes        Quiz[]
+  quizAttempts   QuizAttempt[]
+  miniGameScores MiniGameScore[]
+  userBadges     UserBadge[]
+  xpEvents       XpEvent[]
+
+  revenueEntries    RevenueEntry[]
+  expenseEntries    ExpenseEntry[]
+  budgets           Budget[]
+  businessGoals     BusinessGoal[]
+  investmentEntries InvestmentEntry[]
+  marketingItems    MarketingPlanItem[]
+  academyProgress   AcademyProgress[]
+  careerGoals       CareerGoal[]
+
+  personalGoals  PersonalGoal[]
+  habits         Habit[]
+  habitLogs      HabitLog[]
+  progressChecks ProgressCheckIn[]
+
+  calendarEvents CalendarEvent[]
+  reminderRules  ReminderRule[]
+
+  aiConversations AiConversation[]
+  chatMessages    ChatMessage[]
+  aiMemoryItems   AiMemoryItem[]
+  aiSuggestions   AiSuggestion[]
+  aiUsageRecords  AiUsageRecord[]
+
+  @@index([email])
+}
+
+model Profile {
+  userId              String          @id
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                String
+  age                 Int?
+  country             String?
+  countryCode         String?
+  language            String          @default("en")
+  currency            String          @default("USD")
+  mode                AppMode?
+  businessRole        BusinessRole?
+  ownsBusiness        Boolean?
+  personalFocus       PersonalFocus[]
+  avatarUrl           String?
+  onboardingCompleted Boolean         @default(false)
+  tutorialCompleted   Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+}
+
+// ---------- Gamification ----------
+
+model Gamification {
+  userId           String    @id
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  xp               Int       @default(0)
+  level            Int       @default(1)
+  coins            Int       @default(0)
+  currentStreak    Int       @default(0)
+  longestStreak    Int       @default(0)
+  lastActivityDate DateTime?
+}
+
+model Badge {
+  id          String      @id @default(cuid())
+  key         String      @unique
+  name        String
+  description String
+  icon        String
+  userBadges  UserBadge[]
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId  String
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+}
+
+model XpEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Int
+  reason    String
+  createdAt DateTime @default(now())
+}
+
+// ---------- Student mode ----------
+
+model Homework {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject     Subject
+  title       String
+  description String?
+  dueDate     DateTime
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model GradeEntry {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject        Subject
+  assignmentName String
+  score          Float
+  maxScore       Float
+  weight         Float    @default(1)
+  date           DateTime @default(now())
+}
+
+model StudyPlanItem {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject         Subject
+  title           String
+  scheduledAt     DateTime
+  durationMinutes Int
+  completed       Boolean  @default(false)
+}
+
+model Exam {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject  Subject
+  title    String
+  date     DateTime
+  location String?
+}
+
+model ReadingEntry {
+  id         String        @id @default(cuid())
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  author     String?
+  totalPages Int?
+  pagesRead  Int           @default(0)
+  status     ReadingStatus @default(WISHLIST)
+  startedAt  DateTime?
+  finishedAt DateTime?
+}
+
+model StudySession {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject         Subject?
+  startedAt       DateTime  @default(now())
+  endedAt         DateTime?
+  durationMinutes Int       @default(0)
+}
+
+model Quiz {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   Subject
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+  createdAt DateTime       @default(now())
+}
+
+model QuizQuestion {
+  id           String     @id @default(cuid())
+  quizId       String
+  quiz         Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  prompt       String
+  choices      String[]
+  correctIndex Int
+  explanation  String
+  difficulty   Difficulty @default(MEDIUM)
+  order        Int        @default(0)
+}
+
+model QuizAttempt {
+  id             String   @id @default(cuid())
+  quizId         String
+  quiz           Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers        Int[]
+  score          Int
+  totalQuestions Int
+  completedAt    DateTime @default(now())
+}
+
+model MiniGameScore {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game     MiniGame
+  score    Int
+  playedAt DateTime @default(now())
+}
+
+// ---------- Business mode ----------
+
+model RevenueEntry {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount   Float
+  currency String
+  source   String
+  date     DateTime @default(now())
+}
+
+model ExpenseEntry {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount   Float
+  currency String
+  category String
+  date     DateTime @default(now())
+}
+
+model Budget {
+  id       String       @id @default(cuid())
+  userId   String
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category String
+  limit    Float
+  currency String
+  period   BudgetPeriod @default(MONTHLY)
+}
+
+model BusinessGoal {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  targetValue  Float
+  currentValue Float     @default(0)
+  unit         String
+  dueDate      DateTime?
+  completed    Boolean   @default(false)
+}
+
+model InvestmentEntry {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  amount       Float
+  currency     String
+  currentValue Float
+  purchaseDate DateTime
+}
+
+model MarketingPlanItem {
+  id            String          @id @default(cuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  channel       String
+  scheduledDate DateTime
+  status        MarketingStatus @default(PLANNED)
+  notes         String?
+}
+
+model AcademyModule {
+  id       String            @id @default(cuid())
+  academy  Academy
+  title    String
+  summary  String
+  order    Int               @default(0)
+  progress AcademyProgress[]
+}
+
+model AcademyProgress {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  academy     Academy
+  moduleId    String
+  module      AcademyModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  completed   Boolean       @default(false)
+  completedAt DateTime?
+
+  @@unique([userId, moduleId])
+}
+
+model CareerGoal {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  category   CareerCategory
+  targetDate DateTime?
+  completed  Boolean        @default(false)
+}
+
+// ---------- Personal mode ----------
+
+model PersonalGoal {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  focus        PersonalFocus
+  title        String
+  targetValue  Float?
+  currentValue Float?
+  unit         String?
+  dueDate      DateTime?
+  completed    Boolean       @default(false)
+}
+
+model Habit {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  focus       PersonalFocus?
+  frequency   HabitFrequency @default(DAILY)
+  targetCount Int            @default(1)
+  createdAt   DateTime       @default(now())
+  archived    Boolean        @default(false)
+  logs        HabitLog[]
+}
+
+model HabitLog {
+  id        String   @id @default(cuid())
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @default(now())
+  completed Boolean  @default(true)
+}
+
+model ProgressCheckIn {
+  id     String        @id @default(cuid())
+  userId String
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  focus  PersonalFocus
+  date   DateTime      @default(now())
+  value  Float
+  note   String?
+}
+
+// ---------- Calendar & notifications ----------
+
+model CalendarEvent {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  category  CalendarCategory
+  startAt   DateTime
+  endAt     DateTime?
+  allDay    Boolean          @default(false)
+  notes     String?
+  createdAt DateTime         @default(now())
+}
+
+model ReminderRule {
+  id        String               @id @default(cuid())
+  userId    String
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  NotificationCategory
+  relatedId String?
+  remindAt  DateTime
+  message   String
+  sent      Boolean              @default(false)
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  Platform
+  createdAt DateTime @default(now())
+}
+
+model NotificationRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  String
+  title     String
+  body      String
+  data      Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ---------- AI assistant ----------
+
+model AiConversation {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String        @default("New conversation")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           ChatRole
+  content        String         @db.Text
+  createdAt      DateTime       @default(now())
+}
+
+model AiMemoryItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key       String
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, key])
+}
+
+model AiSuggestion {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  String
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  dismissed Boolean  @default(false)
+}
+
+model AiUsageRecord {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint         String
+  promptTokens     Int
+  completionTokens Int
+  createdAt        DateTime @default(now())
+}
+
+// ---------- Content / admin ----------
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  academy     Academy?
+  subject     Subject?
+  description String?
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Book {
+  id        String   @id @default(cuid())
+  title     String
+  author    String
+  subject   Subject?
+  coverUrl  String?
+  published Boolean  @default(true)
+}
+
+model AdminAnalyticsSnapshot {
+  id             String   @id @default(cuid())
+  date           DateTime @unique
+  totalUsers     Int
+  activeUsers    Int
+  newSignups     Int
+  aiRequestCount Int
+  quizzesTaken   Int
+}
+
+model UploadedFile {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url       String
+  filename  String
+  mimeType  String
+  sizeBytes Int
+  createdAt DateTime @default(now())
+}
