@@ -36,9 +36,16 @@ organizer/
 - **Constants and i18n** — subjects, mini-games, academies, XP/coin reward
   tables, supported languages, and translation dictionaries.
 
-Both Next.js and Expo/Metro are configured to transpile this package's
-TypeScript source directly (`transpilePackages` / `watchFolders`) rather than
-requiring a separate build step during development.
+The web and mobile apps alias `@organizer/shared` straight to its TypeScript
+source (via their own `tsconfig.json` `paths`, plus Next's `transpilePackages`
+and Metro's `watchFolders`), so editing shared code shows up immediately in
+those two dev servers with no build step. The backend instead resolves
+`@organizer/shared` through normal Node module resolution to its compiled
+`dist/` output (`packages/shared`'s `package.json#main`), because it also
+compiles itself to plain CommonJS for `npm run build && npm start` — run
+`npm run build:shared` (wired into the root `prepare` script, so a plain
+`npm install` at the repo root does it automatically) whenever shared code
+changes and you need the backend to see it.
 
 ## Data model (Prisma / PostgreSQL)
 

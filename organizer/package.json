@@ -10,6 +10,7 @@
     "packages/shared"
   ],
   "scripts": {
+    "prepare": "npm run build:shared",
     "dev:backend": "npm run dev --workspace=apps/backend",
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:mobile": "npm run start --workspace=apps/mobile",

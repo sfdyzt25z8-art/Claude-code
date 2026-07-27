@@ -1,10 +1,13 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import {
-  initializeAuth,
-  getReactNativePersistence,
-  getAuth,
-  type Auth,
-} from "firebase/auth";
+import { initializeAuth, getAuth, type Auth } from "firebase/auth";
+// `getReactNativePersistence` only exists in firebase/auth's React Native build
+// (selected by Metro via the "react-native" package.json export condition at
+// bundle time); Expo's default tsconfig uses moduleResolution "node", which
+// doesn't evaluate package "exports" conditions at all, so the type checker
+// resolves the plain web/node build and doesn't see it even though it's
+// really there at runtime. See firebase-js-sdk#7060.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { getReactNativePersistence } = require("firebase/auth");
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 

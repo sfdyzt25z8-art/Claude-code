@@ -12,11 +12,6 @@
     "isolatedModules": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "baseUrl": ".",
-    "paths": {
-      "@organizer/shared": ["packages/shared/src/index.ts"],
-      "@organizer/shared/*": ["packages/shared/src/*"]
-    }
+    "sourceMap": true
   }
 }

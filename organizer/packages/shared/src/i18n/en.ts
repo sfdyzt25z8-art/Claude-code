@@ -29,6 +29,6 @@ const en = {
     assistantName: "Organizer AI",
     placeholder: "Ask your AI assistant anything…",
   },
-} as const;
+};
 
 export default en;

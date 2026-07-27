@@ -10,7 +10,8 @@ export interface GlassCardProps extends HTMLMotionProps<"div"> {
 }
 
 export const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
-  ({ className, padded = true, hoverable = false, children, ...props }, ref) => {
+  ({ className, padded = true, hoverable = false, children, onClick, onKeyDown, ...props }, ref) => {
+    const isInteractive = !!onClick;
     return (
       <motion.div
         ref={ref}
@@ -22,9 +23,20 @@ export const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
           "glass rounded-2xl border shadow-glass",
           padded && "p-5",
           hoverable && "cursor-pointer transition-shadow hover:shadow-glass-lg",
+          isInteractive && "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
           className
         )}
         style={{ borderColor: "var(--color-border)" }}
+        onClick={onClick}
+        role={isInteractive ? "button" : undefined}
+        tabIndex={isInteractive ? 0 : undefined}
+        onKeyDown={(e) => {
+          onKeyDown?.(e);
+          if (isInteractive && onClick && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            onClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+          }
+        }}
         {...props}
       >
         {children}

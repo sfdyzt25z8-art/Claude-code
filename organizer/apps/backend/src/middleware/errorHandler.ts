@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { MulterError } from "multer";
 import { HttpError } from "../lib/httpError";
 
 /** Wrap async route handlers so rejected promises reach the error handler. */
@@ -26,6 +27,11 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
         ...(err.details !== undefined ? { details: err.details } : {}),
       },
     });
+    return;
+  }
+
+  if (err instanceof MulterError) {
+    res.status(400).json({ error: { message: `Upload error: ${err.message}` } });
     return;
   }
 

@@ -25,8 +25,9 @@ export function LoginScreen({ navigation }: Props) {
   const [, googleResponse, promptGoogleSignIn] = Google.useAuthRequest({
     // These must be set to real OAuth client IDs (from Firebase console ->
     // Authentication -> Sign-in method -> Google -> Web SDK configuration)
-    // via env vars before Google sign-in will work end-to-end.
-    expoClientId: process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID,
+    // via env vars before Google sign-in will work end-to-end. Expo SDK 51's
+    // Google provider dropped the old "expoClientId" (Expo auth proxy) option
+    // in favor of per-platform client IDs only.
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
