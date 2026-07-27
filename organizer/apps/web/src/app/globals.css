@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #ffffff;
+  --color-secondary: #dceefb;
+  --color-accent: #94a3b8;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-glass: rgba(255, 255, 255, 0.6);
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-border: rgba(148, 163, 184, 0.2);
+  --color-gradient-from: #dceefb;
+  --color-gradient-to: #f8fafc;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+.glass {
+  background: var(--color-surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.themed-gradient-bg {
+  background-image: linear-gradient(160deg, var(--color-gradient-from) 0%, var(--color-gradient-to) 100%);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
