@@ -140,8 +140,11 @@ which is where that gets verified.
   app's owner can obtain (see `Backend/README.md`).
 - Deployment or hosting of the backend anywhere — it only runs locally today.
 - Cloud sync and version history persistence.
-- App icon / launch screen assets, full accessibility pass, and iPad-specific
-  layout polish beyond the basic `NavigationSplitView` shell.
+- Launch screen art (currently the system default) and a full accessibility
+  audit (Dynamic Type at largest sizes, VoiceOver rotor/reading order, contrast
+  in both themes) — a first pass exists (app icon, iPad sidebar navigation
+  that actually switches views, combined VoiceOver labels on icon+text
+  controls), but it hasn't been exhaustively audited.
 
 ## Folder layout
 
