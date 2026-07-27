@@ -116,13 +116,29 @@ captions, and audio tracks. `VideoCompositionBuilder`
   them.
 - Voice cloning isn't implemented (only straightforward TTS narration).
 
+## Backend server
+
+`Backend/` is a separate Vapor (Swift on the server) package implementing the
+REST contract the client's `Endpoint.swift` already defines: JWT auth
+(bcrypt-hashed passwords), a real token-bucket rate limiter, a real
+keyword-based content moderation filter, Fluent/SQLite persistence with
+migrations, subscription-credit enforcement, and a provider abstraction
+mirroring the client's so a real AI vendor is a new conforming type, not a
+rewrite. See `Backend/README.md` for endpoints and setup.
+
+**This has been written but never built or run** — no Swift toolchain or SPM
+network access existed in this environment. The design is complete and real;
+the risk is purely whether specific Vapor/JWT API calls match the package
+versions that actually resolve (that ecosystem's API has shifted over time).
+`.github/workflows/backend-ci.yml` builds and tests it for real on push,
+which is where that gets verified.
+
 ## What's not yet built
 
-- Any real backend (REST API, database, job queue, moderation, rate limiting).
-  `APIClient`/`Endpoint` define the contract; there is no server behind it yet.
-- Real AI provider integrations (only the offline mock exists) — so the editor
-  can't yet open an AI-generated video directly, only one imported from Photos.
-- Google Sign-In SDK and real backend-issued auth tokens (currently mocked).
+- Sign in with Apple / Google token verification on the backend, and any real
+  AI video/thumbnail provider — both need credentials/registrations only the
+  app's owner can obtain (see `Backend/README.md`).
+- Deployment or hosting of the backend anywhere — it only runs locally today.
 - Cloud sync and version history persistence.
 - App icon / launch screen assets, full accessibility pass, and iPad-specific
   layout polish beyond the basic `NavigationSplitView` shell.

@@ -27,3 +27,8 @@ xcuserdata/
 *.xcuserstate
 DerivedData/
 .swiftpm/
+
+# Vapor backend
+Backend/.build/
+Backend/db.sqlite
+Backend/Package.resolved
