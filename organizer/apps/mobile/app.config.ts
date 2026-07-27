@@ -23,6 +23,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.organizer.app",
+    usesAppleSignIn: true,
     infoPlist: {
       NSCameraUsageDescription: "Organizer does not use the camera at this time.",
       UIBackgroundModes: ["remote-notification"],
@@ -31,7 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: "com.organizer.app",
     adaptiveIcon: {
-      foregroundImage: "./assets/icon.png",
+      foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#0B0F19",
     },
     permissions: ["NOTIFICATIONS", "SCHEDULE_EXACT_ALARM"],
@@ -48,6 +49,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         color: "#D4AF37",
       },
     ],
+    "expo-apple-authentication",
   ],
   extra: {
     eas: {

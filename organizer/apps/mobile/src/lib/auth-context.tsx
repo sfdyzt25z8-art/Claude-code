@@ -7,6 +7,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   GoogleAuthProvider,
+  OAuthProvider,
   type User as FirebaseUser,
 } from "firebase/auth";
 import * as AppleAuthentication from "expo-apple-authentication";
@@ -100,7 +101,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!appleCredential.identityToken) {
       throw new Error("Apple sign-in did not return an identity token.");
     }
-    const { OAuthProvider } = await import("firebase/auth");
     const provider = new OAuthProvider("apple.com");
     const credential = provider.credential({
       idToken: appleCredential.identityToken,

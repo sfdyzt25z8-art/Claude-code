@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
+import type { Quiz } from "@organizer/shared";
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -12,7 +13,7 @@ export type StudentStackParamList = {
   Exams: undefined;
   Gradebook: undefined;
   QuizSubjectPicker: undefined;
-  QuizPlay: { subject: string; quizId: string };
+  QuizPlay: { quiz: Quiz };
   QuizResult: { quizId: string; score: number; totalQuestions: number };
 };
 
@@ -30,9 +31,7 @@ export type PersonalStackParamList = {
   Progress: undefined;
 };
 
-export type DashboardStackParamList = {
-  DashboardHome: undefined;
-} & StudentStackParamList &
+export type DashboardStackParamList = StudentStackParamList &
   BusinessStackParamList &
   PersonalStackParamList;
 

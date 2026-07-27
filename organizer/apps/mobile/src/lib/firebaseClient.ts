@@ -2,9 +2,9 @@ import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import {
   initializeAuth,
   getReactNativePersistence,
+  getAuth,
   type Auth,
 } from "firebase/auth";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 
@@ -53,9 +53,7 @@ try {
   });
 } catch {
   // Already initialized (e.g. Fast Refresh) - fall back to the existing
-  // instance via a lazy require to avoid circular import issues.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { getAuth } = require("firebase/auth");
+  // instance instead of throwing.
   authInstance = getAuth(firebaseApp);
 }
 
