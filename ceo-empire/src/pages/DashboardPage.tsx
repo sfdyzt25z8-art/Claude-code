@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Building2,
+  Flame,
 } from 'lucide-react';
 import { useGameStore, selectNetWorth } from '@/store/gameStore';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,8 +18,8 @@ import { ActiveEventsBanner } from '@/components/dashboard/ActiveEventsBanner';
 import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Icon } from '@/components/ui/Icon';
-import { formatMoney } from '@/lib/format';
-import { computeEmpireTotals, businessFinancials } from '@/lib/gameEngine';
+import { formatMoney, formatPercent } from '@/lib/format';
+import { computeEmpireTotals, businessFinancials, prestigeMultiplier } from '@/lib/gameEngine';
 import { levelProgressFromXp } from '@/data/levels';
 import { getBusinessTemplate } from '@/data/businesses';
 
@@ -31,11 +32,19 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-white sm:text-3xl">
-          Welcome back, <span className="gold-text">{user?.displayName}</span>
-        </h1>
-        <p className="text-sm text-white/40">Day {state.day} of your empire &middot; Here's where things stand.</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold text-white sm:text-3xl">
+            Welcome back, <span className="gold-text">{user?.displayName}</span>
+          </h1>
+          <p className="text-sm text-white/40">Day {state.day} of your empire &middot; Here's where things stand.</p>
+        </div>
+        {state.prestige.count > 0 && (
+          <div className="flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1.5 text-xs font-medium text-orange-300">
+            <Flame className="h-3.5 w-3.5" />
+            Prestige {state.prestige.count} &middot; +{formatPercent(prestigeMultiplier(state) - 1)} income
+          </div>
+        )}
       </div>
 
       <ActiveEventsBanner events={state.activeEvents} day={state.day} />

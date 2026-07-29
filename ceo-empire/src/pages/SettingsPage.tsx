@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Toggle } from '@/components/ui/Toggle';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { PrestigeCard } from '@/components/PrestigeCard';
 
 export default function SettingsPage() {
   const settings = useGameStore((s) => s.state.settings);
@@ -101,6 +102,8 @@ export default function SettingsPage() {
           />
         </div>
       </Card>
+
+      <PrestigeCard />
 
       <Card className="p-5">
         <h2 className="mb-4 text-sm font-semibold text-white">Danger Zone</h2>

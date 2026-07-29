@@ -12,23 +12,29 @@ import { UPGRADE_TYPES, MAX_UPGRADE_LEVEL, type OwnedBusiness } from '@/types/ga
 import { businessFinancials, employeeCapacity, employeeCapacityUsed } from '@/lib/gameEngine';
 import { EMPLOYEE_TEMPLATES } from '@/data/employees';
 import { formatMoney } from '@/lib/format';
+import { playSound } from '@/lib/audio';
 
 export function BusinessDetailModal({
-  business,
+  businessId,
   onClose,
 }: {
-  business: OwnedBusiness | null;
+  businessId: string | null;
   onClose: () => void;
 }) {
   const state = useGameStore((s) => s.state);
   const upgradeBusiness = useGameStore((s) => s.upgradeBusiness);
   const fireEmployee = useGameStore((s) => s.fireEmployee);
   const [error, setError] = useState<string | null>(null);
-  const [displayed, setDisplayed] = useState<OwnedBusiness | null>(business);
+  // Always looked up live from the store so upgrades purchased inside this modal
+  // are reflected immediately instead of showing a stale snapshot.
+  const liveBusiness = businessId
+    ? (state.businesses.find((b) => b.instanceId === businessId) ?? null)
+    : null;
+  const [displayed, setDisplayed] = useState<OwnedBusiness | null>(liveBusiness);
 
   useEffect(() => {
-    if (business) setDisplayed(business);
-  }, [business]);
+    if (liveBusiness) setDisplayed(liveBusiness);
+  }, [liveBusiness]);
 
   const template = displayed ? getBusinessTemplate(displayed.templateId) : null;
   if (!displayed || !template) {
@@ -44,11 +50,16 @@ export function BusinessDetailModal({
     if (!displayed) return;
     setError(null);
     const result = upgradeBusiness(displayed.instanceId, type);
-    if (!result.ok) setError(result.error ?? 'Could not upgrade.');
+    if (result.ok) {
+      playSound('upgrade');
+    } else {
+      playSound('error');
+      setError(result.error ?? 'Could not upgrade.');
+    }
   }
 
   return (
-    <Modal open={!!business} onClose={onClose} title={template.name} maxWidth="max-w-2xl">
+    <Modal open={!!businessId} onClose={onClose} title={template.name} maxWidth="max-w-2xl">
       <div className="flex flex-col gap-5">
         <div className="flex items-center gap-4 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gold-500/10 text-gold-400">

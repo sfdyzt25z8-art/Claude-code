@@ -16,6 +16,11 @@ export const STARTING_CASH = 10_000;
 /** How many real-time seconds make up one in-game day. */
 export const GAME_DAY_SECONDS = 180;
 
+/** Net worth required to be eligible to Prestige. */
+export const PRESTIGE_MIN_NET_WORTH = 5_000_000;
+/** Permanent income multiplier granted per Prestige level. */
+export const PRESTIGE_INCOME_BONUS_PER_LEVEL = 0.15;
+
 export const DEFAULT_SETTINGS: GameSettings = {
   theme: 'dark',
   soundEnabled: true,
@@ -52,7 +57,39 @@ export function createInitialState(): GameState {
     lastTickAt: now,
     lastSavedAt: now,
     dailyReward: { lastClaimedAt: null, streak: 0 },
+    prestige: { count: 0 },
     settings: DEFAULT_SETTINGS,
+  };
+}
+
+/** Fills in defaults for any fields missing from an older/loaded save (schema drift safety net). */
+export function hydrateState(raw: GameState): GameState {
+  return {
+    ...raw,
+    coins: raw.coins ?? 0,
+    prestige: raw.prestige ?? { count: 0 },
+    settings: { ...DEFAULT_SETTINGS, ...raw.settings },
+  };
+}
+
+/** Permanent income multiplier earned from past Prestige resets. */
+export function prestigeMultiplier(state: GameState): number {
+  return 1 + state.prestige.count * PRESTIGE_INCOME_BONUS_PER_LEVEL;
+}
+
+/**
+ * Resets the empire to a fresh start in exchange for a permanent income boost.
+ * Achievements, daily-reward streak, and settings survive the reset; everything
+ * else — cash, businesses, employees, investments, XP/level, day — does not.
+ */
+export function prestigeReset(prev: GameState): GameState {
+  const fresh = createInitialState();
+  return {
+    ...fresh,
+    achievementsUnlocked: prev.achievementsUnlocked,
+    dailyReward: prev.dailyReward,
+    settings: prev.settings,
+    prestige: { count: prev.prestige.count + 1 },
   };
 }
 
@@ -151,6 +188,9 @@ export function computeEmpireTotals(state: GameState): EmpireTotals {
     dailyIncome += fin.dailyIncome;
     dailyExpense += fin.dailyExpense;
   }
+  // Prestige grants a permanent, empire-wide income boost (applied here rather than
+  // per-business so each business's own numbers stay legible on its own).
+  dailyIncome *= prestigeMultiplier(state);
   return { dailyIncome, dailyExpense, dailyProfit: dailyIncome - dailyExpense };
 }
 

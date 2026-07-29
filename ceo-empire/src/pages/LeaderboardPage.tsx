@@ -22,18 +22,16 @@ export default function LeaderboardPage() {
   const [sortKey, setSortKey] = useState<SortKey>('netWorth');
   const [loading, setLoading] = useState(true);
 
-  async function load() {
+  async function load(key: SortKey) {
     setLoading(true);
-    const data = await fetchLeaderboard(25);
+    const data = await fetchLeaderboard(key, 25);
     setEntries(data);
     setLoading(false);
   }
 
   useEffect(() => {
-    load();
-  }, []);
-
-  const sorted = [...entries].sort((a, b) => b[sortKey] - a[sortKey]);
+    load(sortKey);
+  }, [sortKey]);
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
@@ -43,7 +41,7 @@ export default function LeaderboardPage() {
           <p className="text-sm text-white/40">See how you stack up against the world's CEOs.</p>
         </div>
         <button
-          onClick={load}
+          onClick={() => load(sortKey)}
           className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-xs text-white/60 hover:bg-white/5 cursor-pointer"
         >
           <RefreshCw className={clsx('h-3.5 w-3.5', loading && 'animate-spin')} />
@@ -76,7 +74,7 @@ export default function LeaderboardPage() {
             progress stays on this device only.
           </p>
         </Card>
-      ) : sorted.length === 0 ? (
+      ) : entries.length === 0 ? (
         <Card className="flex flex-col items-center gap-3 p-10 text-center">
           <Trophy className="h-8 w-8 text-white/20" />
           <p className="text-sm text-white/50">
@@ -85,7 +83,7 @@ export default function LeaderboardPage() {
         </Card>
       ) : (
         <Card className="divide-y divide-white/[0.06] p-2">
-          {sorted.map((entry, i) => (
+          {entries.map((entry, i) => (
             <div
               key={entry.uid}
               className={clsx(

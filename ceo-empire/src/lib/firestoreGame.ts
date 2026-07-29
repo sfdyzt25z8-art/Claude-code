@@ -50,10 +50,13 @@ export async function loadGameFromCloud(
   return { state: data.gameState, profile: data.profile };
 }
 
-export async function fetchLeaderboard(take = 25): Promise<LeaderboardEntry[]> {
+export async function fetchLeaderboard(
+  sortBy: 'netWorth' | 'level' | 'businessCount' = 'netWorth',
+  take = 25,
+): Promise<LeaderboardEntry[]> {
   if (!isFirebaseConfigured || !firestoreDb) return [];
   const usersRef = collection(firestoreDb, 'users');
-  const q = query(usersRef, orderBy('netWorth', 'desc'), fsLimit(take));
+  const q = query(usersRef, orderBy(sortBy, 'desc'), fsLimit(take));
   const snap = await getDocs(q);
   return snap.docs.map((d) => {
     const data = d.data() as UserDocShape;

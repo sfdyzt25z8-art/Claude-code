@@ -20,8 +20,12 @@ Built with React, TypeScript, Vite, Tailwind CSS, Firebase Authentication, and F
   flags understaffed or unprofitable businesses, and explains your daily profit.
 - **Random daily events** — Economic Boom, Recession, Viral Marketing, Equipment Failure,
   Investor Opportunity, Tax Refund, New Competitor — each temporarily shifting income/expenses.
-- **14 achievements** and an XP/leveling system that unlocks new businesses, hires, and
+- **16 achievements** and an XP/leveling system that unlocks new businesses, hires, and
   investments as you grow.
+- **Prestige** — once you reach $5M net worth, reset your empire for a permanent +15%
+  (stacking) income boost. Achievements and your daily-reward streak carry over.
+- **Sound & music** — synthesized SFX (no audio assets needed) for purchases, upgrades, hires,
+  investments, achievements, level-ups, and daily rewards, plus an ambient music toggle.
 - **Investments** — stocks, real estate, crypto, and startups with simulated live price
   movement (random walk + drift), buy/sell, and a portfolio view.
 - **Leaderboard** — richest players, highest level, biggest company (via Firestore).
@@ -75,6 +79,8 @@ service cloud.firestore {
 - `npm run build` — type-check and build for production
 - `npm run preview` — preview the production build
 - `npm run lint` — lint with oxlint
+- `npm run test` — run the unit test suite (Vitest)
+- `npm run test:watch` — run tests in watch mode
 
 ## Project structure
 
@@ -84,8 +90,9 @@ src/
   contexts/      AuthContext (Firebase auth + guest mode)
   data/          static game config (businesses, upgrades, employees, events, achievements,
                  investments, levels)
-  hooks/         useGameSync (load/tick/autosave bridge)
-  lib/           game engine, tick/advance logic, market simulation, AI advisor, formatting
+  hooks/         useGameSync (load/tick/autosave bridge), useAudioSync
+  lib/           game engine, tick/advance logic, market simulation, AI advisor, audio, formatting
+                 (*.test.ts files sit next to the modules they cover)
   pages/         route-level screens
   store/         Zustand game store
   types/         shared TypeScript types

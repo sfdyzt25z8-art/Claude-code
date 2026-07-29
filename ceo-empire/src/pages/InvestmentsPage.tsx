@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { formatMoney } from '@/lib/format';
 import { investmentsValue } from '@/lib/gameEngine';
 import type { InvestmentCategory } from '@/types/game';
+import { playSound } from '@/lib/audio';
 import clsx from 'clsx';
 
 const CATEGORIES: { id: InvestmentCategory | 'all'; label: string }[] = [
@@ -29,13 +30,23 @@ export default function InvestmentsPage() {
   function handleBuy(assetId: string, dollarAmount: number) {
     setError(null);
     const result = buyInvestment(assetId, dollarAmount);
-    if (!result.ok) setError(result.error ?? 'Could not invest.');
+    if (result.ok) {
+      playSound('invest');
+    } else {
+      playSound('error');
+      setError(result.error ?? 'Could not invest.');
+    }
   }
 
   function handleSell(assetId: string, quantity: number) {
     setError(null);
     const result = sellInvestment(assetId, quantity);
-    if (!result.ok) setError(result.error ?? 'Could not sell.');
+    if (result.ok) {
+      playSound('invest');
+    } else {
+      playSound('error');
+      setError(result.error ?? 'Could not sell.');
+    }
   }
 
   return (

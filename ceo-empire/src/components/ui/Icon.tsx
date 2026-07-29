@@ -48,6 +48,8 @@ import {
   Zap,
   PartyPopper,
   HelpCircle,
+  Infinity as InfinityIcon,
+  PiggyBank,
   type LucideProps,
 } from 'lucide-react';
 
@@ -101,6 +103,8 @@ const ICONS: Record<string, React.ComponentType<LucideProps>> = {
   Zap,
   PartyPopper,
   HelpCircle,
+  Infinity: InfinityIcon,
+  PiggyBank,
 };
 
 interface IconProps extends LucideProps {

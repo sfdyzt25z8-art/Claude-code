@@ -5,11 +5,13 @@ import { TopBar } from '@/components/layout/TopBar';
 import { NotificationsToast } from '@/components/NotificationsToast';
 import { OfflineSummaryModal } from '@/components/OfflineSummaryModal';
 import { useGameSync } from '@/hooks/useGameSync';
+import { useAudioSync } from '@/hooks/useAudioSync';
 import { useGameStore } from '@/store/gameStore';
 import { Crown } from 'lucide-react';
 
 export function AppLayout() {
   useGameSync();
+  useAudioSync();
   const isLoaded = useGameStore((s) => s.isLoaded);
   const theme = useGameStore((s) => s.state.settings.theme);
   const [sidebarOpen, setSidebarOpen] = useState(false);

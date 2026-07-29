@@ -5,6 +5,7 @@ import type { EmployeeType } from '@/types/game';
 import { HireCard } from '@/components/employee/HireCard';
 import { EmployeeRosterRow } from '@/components/employee/EmployeeRosterRow';
 import { Card } from '@/components/ui/Card';
+import { playSound } from '@/lib/audio';
 
 export default function EmployeesPage() {
   const state = useGameStore((s) => s.state);
@@ -16,13 +17,21 @@ export default function EmployeesPage() {
   function handleHire(type: EmployeeType, businessId: string | null) {
     setError(null);
     const result = hireEmployee(type, businessId);
-    if (!result.ok) setError(result.error ?? 'Could not hire employee.');
+    if (result.ok) {
+      playSound('hire');
+    } else {
+      playSound('error');
+      setError(result.error ?? 'Could not hire employee.');
+    }
   }
 
   function handleAssign(employeeId: string, businessId: string | null) {
     setError(null);
     const result = assignEmployee(employeeId, businessId);
-    if (!result.ok) setError(result.error ?? 'Could not reassign employee.');
+    if (!result.ok) {
+      playSound('error');
+      setError(result.error ?? 'Could not reassign employee.');
+    }
   }
 
   return (

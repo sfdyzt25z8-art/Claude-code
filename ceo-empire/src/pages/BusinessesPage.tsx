@@ -3,7 +3,8 @@ import { useGameStore } from '@/store/gameStore';
 import { BUSINESS_TEMPLATES } from '@/data/businesses';
 import { BusinessCard } from '@/components/business/BusinessCard';
 import { BusinessDetailModal } from '@/components/business/BusinessDetailModal';
-import type { BusinessCategory, OwnedBusiness } from '@/types/game';
+import type { BusinessCategory } from '@/types/game';
+import { playSound } from '@/lib/audio';
 import clsx from 'clsx';
 
 const CATEGORIES: { id: BusinessCategory | 'all'; label: string }[] = [
@@ -19,7 +20,7 @@ export default function BusinessesPage() {
   const state = useGameStore((s) => s.state);
   const buyBusiness = useGameStore((s) => s.buyBusiness);
   const [category, setCategory] = useState<BusinessCategory | 'all'>('all');
-  const [managing, setManaging] = useState<OwnedBusiness | null>(null);
+  const [managingId, setManagingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const templates = BUSINESS_TEMPLATES.filter((t) => category === 'all' || t.category === category);
@@ -27,7 +28,12 @@ export default function BusinessesPage() {
   function handleBuy(templateId: string) {
     setError(null);
     const result = buyBusiness(templateId);
-    if (!result.ok) setError(result.error ?? 'Could not buy business.');
+    if (result.ok) {
+      playSound('buy');
+    } else {
+      playSound('error');
+      setError(result.error ?? 'Could not buy business.');
+    }
   }
 
   return (
@@ -70,13 +76,13 @@ export default function BusinessesPage() {
               owned={owned}
               state={state}
               onBuy={() => handleBuy(template.id)}
-              onManage={() => setManaging(owned)}
+              onManage={() => setManagingId(owned?.instanceId ?? null)}
             />
           );
         })}
       </div>
 
-      <BusinessDetailModal business={managing} onClose={() => setManaging(null)} />
+      <BusinessDetailModal businessId={managingId} onClose={() => setManagingId(null)} />
     </div>
   );
 }

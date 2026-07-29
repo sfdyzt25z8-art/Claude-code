@@ -152,6 +152,10 @@ export interface DailyRewardState {
   streak: number;
 }
 
+export interface PrestigeState {
+  count: number;
+}
+
 export interface GameState {
   cash: number;
   coins: number;
@@ -174,6 +178,7 @@ export interface GameState {
   lastTickAt: number;
   lastSavedAt: number;
   dailyReward: DailyRewardState;
+  prestige: PrestigeState;
   settings: GameSettings;
 }
 

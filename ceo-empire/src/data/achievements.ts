@@ -121,6 +121,22 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     xpReward: 600,
     check: (s) => s.level >= 10,
   },
+  {
+    id: 'first_prestige',
+    title: 'Reborn',
+    description: 'Prestige for the first time and start a new empire, permanently stronger.',
+    icon: 'Flame',
+    xpReward: 1000,
+    check: (s) => s.prestige.count >= 1,
+  },
+  {
+    id: 'prestige_veteran',
+    title: 'Serial Entrepreneur',
+    description: 'Prestige 5 times.',
+    icon: 'Infinity',
+    xpReward: 3000,
+    check: (s) => s.prestige.count >= 5,
+  },
 ];
 
 export function getAchievement(id: string): AchievementDefinition | undefined {

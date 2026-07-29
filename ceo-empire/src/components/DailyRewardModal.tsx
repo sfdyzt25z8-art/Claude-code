@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useGameStore } from '@/store/gameStore';
 import { formatMoney, formatNumber } from '@/lib/format';
+import { playSound } from '@/lib/audio';
 
 const COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
@@ -38,7 +39,10 @@ export function DailyRewardModal({ open, onClose }: { open: boolean; onClose: ()
 
   function handleClaim() {
     const result = claimDailyReward();
-    if (result.ok && result.reward) setClaimed(result.reward);
+    if (result.ok && result.reward) {
+      playSound('reward');
+      setClaimed(result.reward);
+    }
   }
 
   return (

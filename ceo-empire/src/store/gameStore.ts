@@ -18,8 +18,12 @@ import {
   employeeCapacity,
   employeeCapacityUsed,
   computeNetWorth,
+  prestigeReset,
+  hydrateState,
+  PRESTIGE_MIN_NET_WORTH,
 } from '@/lib/gameEngine';
 import { advanceTime, MAX_OFFLINE_SECONDS } from '@/lib/gameTick';
+import { formatMoney } from '@/lib/format';
 
 export interface GameNotification {
   id: string;
@@ -60,6 +64,7 @@ interface GameStoreState {
   };
   updateSettings: (partial: Partial<GameSettings>) => void;
   resetGame: () => void;
+  prestige: () => ActionResult;
   dismissNotification: (id: string) => void;
   clearOfflineSummary: () => void;
 }
@@ -75,7 +80,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   notifications: [],
   offlineSummary: null,
 
-  loadForUser: (uid, initial) => {
+  loadForUser: (uid, rawInitial) => {
+    const initial = hydrateState(rawInitial);
     const now = Date.now();
     const elapsedSeconds = Math.min((now - initial.lastTickAt) / 1000, MAX_OFFLINE_SECONDS);
     let nextState = initial;
@@ -373,6 +379,32 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   resetGame: () => {
     set({ state: createInitialState(), notifications: [], offlineSummary: null });
+  },
+
+  prestige: () => {
+    const { state } = get();
+    const netWorth = computeNetWorth(state);
+    if (netWorth < PRESTIGE_MIN_NET_WORTH) {
+      return {
+        ok: false,
+        error: `Reach a net worth of ${formatMoney(PRESTIGE_MIN_NET_WORTH, { compact: true })} to prestige.`,
+      };
+    }
+    const nextState = prestigeReset(state);
+    set((s) => ({
+      state: nextState,
+      notifications: [
+        ...s.notifications,
+        {
+          id: notifId(),
+          kind: 'level_up',
+          title: `Prestiged! Now level ${nextState.prestige.count}`,
+          message: `You've restarted with a permanent +${Math.round(nextState.prestige.count * 15)}% income boost.`,
+          icon: 'Flame',
+        },
+      ],
+    }));
+    return { ok: true };
   },
 
   dismissNotification: (id) => {

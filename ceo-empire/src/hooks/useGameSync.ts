@@ -6,7 +6,7 @@ import { loadGameFromCloud, saveGameToCloud } from '@/lib/firestoreGame';
 import { createInitialState, computeNetWorth } from '@/lib/gameEngine';
 import type { GameState } from '@/types/game';
 
-const LOCAL_SAVE_INTERVAL_MS = 3000;
+const LOCAL_SAVE_INTERVAL_MS = 2000;
 const CLOUD_SAVE_INTERVAL_MS = 20000;
 const TICK_INTERVAL_MS = 1000;
 
@@ -96,12 +96,24 @@ export function useGameSync() {
 
   useEffect(() => {
     if (!user) return;
-    function handleUnload() {
+    function saveNow() {
       if (!user) return;
       const snapshot = useGameStore.getState().state;
       saveLocalSave(user.uid, { ...snapshot, lastSavedAt: Date.now() });
     }
-    window.addEventListener('beforeunload', handleUnload);
-    return () => window.removeEventListener('beforeunload', handleUnload);
+    // visibilitychange is the reliable signal for "the user is leaving" — it fires on
+    // tab switch, app backgrounding, and tab close across desktop and mobile, unlike
+    // beforeunload/unload which mobile Safari and Chrome frequently skip entirely.
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'hidden') saveNow();
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', saveNow);
+    window.addEventListener('pagehide', saveNow);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', saveNow);
+      window.removeEventListener('pagehide', saveNow);
+    };
   }, [user]);
 }

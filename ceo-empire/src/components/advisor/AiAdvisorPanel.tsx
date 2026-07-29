@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Sparkles, RefreshCw } from 'lucide-react';
 import { useGameStore } from '@/store/gameStore';
@@ -24,6 +24,15 @@ export function AiAdvisorPanel({ open, onClose }: { open: boolean; onClose: () =
   const state = useGameStore((s) => s.state);
   const advice = useMemo(() => generateAdvice(state), [state]);
 
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -36,6 +45,9 @@ export function AiAdvisorPanel({ open, onClose }: { open: boolean; onClose: () =
             onClick={onClose}
           />
           <motion.aside
+            role="dialog"
+            aria-modal="true"
+            aria-label="AI Business Advisor"
             className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-white/10 bg-ink-900 shadow-2xl"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}

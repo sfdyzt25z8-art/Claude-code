@@ -1,9 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useGameStore } from '@/store/gameStore';
 import { Icon } from '@/components/ui/Icon';
+import { playSound, type SoundKind } from '@/lib/audio';
 import clsx from 'clsx';
+
+const KIND_SOUND: Record<string, SoundKind | undefined> = {
+  achievement: 'achievement',
+  level_up: 'levelup',
+};
 
 const KIND_STYLES: Record<string, string> = {
   event: 'border-navy-500/40 bg-navy-800/95',
@@ -18,12 +24,22 @@ const AUTO_DISMISS_MS = 7000;
 export function NotificationsToast() {
   const notifications = useGameStore((s) => s.notifications);
   const dismiss = useGameStore((s) => s.dismissNotification);
+  const seenIds = useRef(new Set<string>());
 
   useEffect(() => {
     if (notifications.length === 0) return;
     const timers = notifications.map((n) => setTimeout(() => dismiss(n.id), AUTO_DISMISS_MS));
     return () => timers.forEach(clearTimeout);
   }, [notifications, dismiss]);
+
+  useEffect(() => {
+    for (const n of notifications) {
+      if (seenIds.current.has(n.id)) continue;
+      seenIds.current.add(n.id);
+      const sound = KIND_SOUND[n.kind];
+      if (sound) playSound(sound);
+    }
+  }, [notifications]);
 
   return (
     <div className="pointer-events-none fixed top-4 right-4 z-[60] flex w-full max-w-sm flex-col gap-2">
