@@ -73,6 +73,25 @@ service cloud.firestore {
 }
 ```
 
+## Deployment
+
+A GitHub Actions workflow (`.github/workflows/ceo-empire-deploy.yml`) builds and deploys this
+app to GitHub Pages on every push to `main` that touches `ceo-empire/`, or on demand via the
+Actions tab ("Run workflow"). It lints, tests, and builds the app, then publishes `dist/` as the
+Pages artifact.
+
+One-time setup (repo admin, on github.com): **Settings → Pages → Source → GitHub Actions**.
+After that, pushing to `main` deploys automatically at
+`https://<owner>.github.io/<repo>/`.
+
+To deploy with real Firebase accounts/cloud-save/leaderboard instead of Guest Mode only, add
+the six `VITE_FIREBASE_*` values (see `.env.example`) as repository secrets — the workflow
+already passes them through to the build.
+
+Routing uses `HashRouter` (URLs like `#/dashboard`) and Vite's `base: './'` specifically so the
+build works unmodified from any static host or subpath — GitHub Pages, Netlify, Vercel, S3, or
+a plain `npm run preview` — with no server-side rewrite rules required.
+
 ## Scripts
 
 - `npm run dev` — start the dev server
