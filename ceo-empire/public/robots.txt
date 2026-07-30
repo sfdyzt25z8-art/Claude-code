@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sfdyzt25z8-art.github.io/Claude-code/sitemap.xml
