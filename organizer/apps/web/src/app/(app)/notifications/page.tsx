@@ -12,10 +12,15 @@ import { apiPatch } from "@/lib/api";
 import { cn, formatDate, titleCase } from "@/lib/utils";
 
 export default function NotificationsPage() {
-  const { data: notifications, loading, error, refetch, setData } = useFetch<NotificationRecord[]>("/api/notifications");
+  const { data: notificationsRes, loading, error, refetch, setData } = useFetch<{
+    notifications: NotificationRecord[];
+  }>("/api/notifications");
+  const notifications = notificationsRes?.notifications;
 
   const markRead = async (id: string) => {
-    setData((prev) => (prev ? prev.map((n) => (n.id === id ? { ...n, read: true } : n)) : prev));
+    setData((prev) =>
+      prev ? { notifications: prev.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)) } : prev
+    );
     try {
       await apiPatch(`/api/notifications/${id}/read`, {});
     } catch {

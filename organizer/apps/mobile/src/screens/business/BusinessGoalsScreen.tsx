@@ -23,7 +23,7 @@ export function BusinessGoalsScreen() {
   async function load() {
     setLoading(true);
     try {
-      const data = await apiGet<BusinessGoal[]>("/api/business/goals");
+      const { goals: data } = await apiGet<{ goals: BusinessGoal[] }>("/api/business/goals");
       setGoals(data);
     } catch (e) {
       setError((e as Error).message);
@@ -42,7 +42,7 @@ export function BusinessGoalsScreen() {
     setSaving(true);
     setError(null);
     try {
-      const created = await apiPost<BusinessGoal>("/api/business/goals", {
+      const { goal: created } = await apiPost<{ goal: BusinessGoal }>("/api/business/goals", {
         title: title.trim(),
         targetValue: targetNum,
         currentValue: 0,

@@ -11,7 +11,8 @@ import { useFetch } from "@/lib/hooks";
 import { formatDate } from "@/lib/utils";
 
 export default function AdminAiUsagePage() {
-  const { data: records, loading, error } = useFetch<AiUsageRecord[]>("/api/admin/ai-usage");
+  const { data: aiUsageRes, loading, error } = useFetch<{ records: AiUsageRecord[] }>("/api/admin/ai-usage");
+  const records = aiUsageRes?.records;
 
   const totalTokens = (records ?? []).reduce((s, r) => s + r.promptTokens + r.completionTokens, 0);
   const totalRequests = (records ?? []).length;

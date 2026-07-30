@@ -30,8 +30,8 @@ export function HomeworkScreen() {
   async function load() {
     setLoading(true);
     try {
-      const data = await apiGet<Homework[]>("/api/student/homework");
-      setItems(data);
+      const { homework } = await apiGet<{ homework: Homework[] }>("/api/student/homework");
+      setItems(homework);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -48,7 +48,7 @@ export function HomeworkScreen() {
     setSaving(true);
     setError(null);
     try {
-      const created = await apiPost<Homework>("/api/student/homework", {
+      const { homework: created } = await apiPost<{ homework: Homework }>("/api/student/homework", {
         title: title.trim(),
         description: description.trim() || null,
         subject,

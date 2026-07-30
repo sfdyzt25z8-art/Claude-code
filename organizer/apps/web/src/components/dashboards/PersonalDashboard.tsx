@@ -15,8 +15,12 @@ import { apiPost, ApiError } from "@/lib/api";
 import { titleCase } from "@/lib/utils";
 
 export function PersonalDashboard() {
-  const { data: habits, loading: habitsLoading, refetch: refetchHabits } = useFetch<Habit[]>("/api/personal/habits");
-  const { data: goals, loading: goalsLoading } = useFetch<PersonalGoal[]>("/api/personal/goals");
+  const { data: habitsRes, loading: habitsLoading, refetch: refetchHabits } = useFetch<{ habits: Habit[] }>(
+    "/api/personal/habits"
+  );
+  const habits = habitsRes?.habits;
+  const { data: goalsRes, loading: goalsLoading } = useFetch<{ goals: PersonalGoal[] }>("/api/personal/goals");
+  const goals = goalsRes?.goals;
   const [loggingId, setLoggingId] = useState<string | null>(null);
   const [loggedToday, setLoggedToday] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);

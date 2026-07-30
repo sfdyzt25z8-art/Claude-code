@@ -31,7 +31,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function PersonalGoalsPage() {
-  const { data: goals, loading, error, refetch } = useFetch<PersonalGoal[]>("/api/personal/goals");
+  const { data: goalsRes, loading, error, refetch } = useFetch<{ goals: PersonalGoal[] }>("/api/personal/goals");
+  const goals = goalsRes?.goals;
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);

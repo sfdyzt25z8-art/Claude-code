@@ -30,7 +30,8 @@ type FormValues = z.infer<typeof schema>;
 const statusTone = { reading: "accent", completed: "success", wishlist: "neutral" } as const;
 
 export default function ReadingPage() {
-  const { data: books, loading, error, refetch } = useFetch<ReadingEntry[]>("/api/student/reading");
+  const { data: readingRes, loading, error, refetch } = useFetch<{ reading: ReadingEntry[] }>("/api/student/reading");
+  const books = readingRes?.reading;
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);

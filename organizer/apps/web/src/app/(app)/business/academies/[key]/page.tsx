@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Circle, GraduationCap } from "lucide-react";
-import type { AcademyModule, AcademyProgress } from "@organizer/shared";
+import type { AcademyModule } from "@organizer/shared";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -16,20 +16,22 @@ import { titleCase } from "@/lib/utils";
 export default function AcademyModulesPage() {
   const params = useParams<{ key: string }>();
   const academyKey = params.key;
-  const { data: modules, loading, error, refetch } = useFetch<AcademyModule[]>(`/api/business/academies/${academyKey}/modules`);
-  const { data: progress } = useFetch<AcademyProgress[]>(`/api/business/academies/${academyKey}/progress`);
+  const { data: modulesRes, loading, error, refetch } = useFetch<{ modules: AcademyModule[] }>(
+    `/api/business/academies/${academyKey}/modules`
+  );
+  const modules = modulesRes?.modules;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [completedLocal, setCompletedLocal] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (progress) {
+    if (modules) {
       setCompletedLocal((prev) => {
         const next = new Set(prev);
-        for (const p of progress) if (p.completed) next.add(p.moduleId);
+        for (const m of modules) if (m.completed) next.add(m.id);
         return next;
       });
     }
-  }, [progress]);
+  }, [modules]);
 
   const sorted = (modules ?? []).slice().sort((a, b) => a.order - b.order);
   const completedCount = sorted.filter((m) => completedLocal.has(m.id)).length;

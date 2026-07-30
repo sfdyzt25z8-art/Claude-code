@@ -33,7 +33,10 @@ const STATUS_TONE: Record<MarketingPlanItem["status"], BadgeTone> = {
 };
 
 export default function MarketingPage() {
-  const { data: items, loading, error, refetch } = useFetch<MarketingPlanItem[]>("/api/business/marketing");
+  const { data: marketingRes, loading, error, refetch } = useFetch<{ marketingItems: MarketingPlanItem[] }>(
+    "/api/business/marketing"
+  );
+  const items = marketingRes?.marketingItems;
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);

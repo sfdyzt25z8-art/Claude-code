@@ -71,6 +71,9 @@ export interface AcademyModule {
   title: string;
   summary: string;
   order: number;
+  /** Present when fetched via GET /academies/:key/modules, which merges in the caller's progress. */
+  completed?: boolean;
+  completedAt?: string | null;
 }
 
 export interface AcademyProgress {

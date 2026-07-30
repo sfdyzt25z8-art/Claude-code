@@ -26,11 +26,11 @@ export function StudentDashboardScreen({ navigation }: Props) {
     setLoading(true);
     try {
       const [homeworkData, examData] = await Promise.all([
-        apiGet<Homework[]>("/api/student/homework"),
-        apiGet<Exam[]>("/api/student/exams"),
+        apiGet<{ homework: Homework[] }>("/api/student/homework"),
+        apiGet<{ exams: Exam[] }>("/api/student/exams"),
       ]);
-      setHomework(homeworkData);
-      setExams(examData);
+      setHomework(homeworkData.homework);
+      setExams(examData.exams);
     } catch (e) {
       console.warn("Failed to load student dashboard", e);
     } finally {

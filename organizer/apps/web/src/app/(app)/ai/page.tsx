@@ -9,12 +9,18 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ChatPanel } from "@/components/ai/ChatPanel";
 import { useFetch } from "@/lib/hooks";
-import { apiPatch } from "@/lib/api";
+import { apiPost } from "@/lib/api";
 import { cn, formatDate } from "@/lib/utils";
 
 export default function AiAssistantPage() {
-  const { data: conversations, loading: convLoading, refetch: refetchConversations } = useFetch<AiConversation[]>("/api/ai/conversations");
-  const { data: suggestions, loading: suggLoading, refetch: refetchSuggestions } = useFetch<AiSuggestion[]>("/api/ai/suggestions");
+  const { data: conversationsRes, loading: convLoading, refetch: refetchConversations } = useFetch<{
+    conversations: AiConversation[];
+  }>("/api/ai/conversations");
+  const conversations = conversationsRes?.conversations;
+  const { data: suggestionsRes, loading: suggLoading, refetch: refetchSuggestions } = useFetch<{
+    suggestions: AiSuggestion[];
+  }>("/api/ai/suggestions");
+  const suggestions = suggestionsRes?.suggestions;
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [initialMessages, setInitialMessages] = useState<ChatMessage[]>([]);
   const [loadingThread, setLoadingThread] = useState(false);
@@ -23,7 +29,9 @@ export default function AiAssistantPage() {
     setActiveConversationId(id);
     setLoadingThread(true);
     try {
-      const messages = await import("@/lib/api").then((m) => m.apiGet<ChatMessage[]>(`/api/ai/conversations/${id}/messages`));
+      const { messages } = await import("@/lib/api").then((m) =>
+        m.apiGet<{ messages: ChatMessage[] }>(`/api/ai/conversations/${id}/messages`)
+      );
       setInitialMessages(messages);
     } catch {
       setInitialMessages([]);
@@ -39,7 +47,7 @@ export default function AiAssistantPage() {
 
   const dismissSuggestion = async (id: string) => {
     try {
-      await apiPatch(`/api/ai/suggestions/${id}`, { dismissed: true });
+      await apiPost(`/api/ai/suggestions/${id}/dismiss`);
       refetchSuggestions();
     } catch {
       // ignore failures — suggestion simply stays visible

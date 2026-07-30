@@ -19,7 +19,7 @@ export function QuizSubjectPickerScreen({ navigation }: Props) {
     setLoadingSubject(subject);
     setError(null);
     try {
-      const quiz = await apiPost<Quiz>("/api/student/quizzes", { subject });
+      const { quiz } = await apiPost<{ quiz: Quiz }>("/api/student/quizzes", { subject });
       navigation.navigate("QuizPlay", { quiz });
     } catch (e) {
       setError((e as Error).message);

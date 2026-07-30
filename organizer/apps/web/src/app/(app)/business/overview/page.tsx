@@ -24,8 +24,14 @@ const LINKS = [
 export default function BusinessOverviewPage() {
   const { profile } = useAuth();
   const isOwner = profile?.ownsBusiness ?? profile?.businessRole === "owner";
-  const { data: revenue, loading: revLoading } = useFetch<RevenueEntry[]>(isOwner ? "/api/business/revenue" : null);
-  const { data: expenses, loading: expLoading } = useFetch<ExpenseEntry[]>(isOwner ? "/api/business/expenses" : null);
+  const { data: revenueRes, loading: revLoading } = useFetch<{ revenue: RevenueEntry[] }>(
+    isOwner ? "/api/business/revenue" : null
+  );
+  const revenue = revenueRes?.revenue;
+  const { data: expensesRes, loading: expLoading } = useFetch<{ expenses: ExpenseEntry[] }>(
+    isOwner ? "/api/business/expenses" : null
+  );
+  const expenses = expensesRes?.expenses;
 
   const totalRevenue = (revenue ?? []).reduce((s, r) => s + r.amount, 0);
   const totalExpenses = (expenses ?? []).reduce((s, e) => s + e.amount, 0);

@@ -26,8 +26,8 @@ export function ExamsScreen() {
   async function load() {
     setLoading(true);
     try {
-      const data = await apiGet<Exam[]>("/api/student/exams");
-      setItems(data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+      const { exams } = await apiGet<{ exams: Exam[] }>("/api/student/exams");
+      setItems(exams.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -44,7 +44,7 @@ export function ExamsScreen() {
     setSaving(true);
     setError(null);
     try {
-      const created = await apiPost<Exam>("/api/student/exams", {
+      const { exam: created } = await apiPost<{ exam: Exam }>("/api/student/exams", {
         title: title.trim(),
         subject,
         date: new Date(date).toISOString(),

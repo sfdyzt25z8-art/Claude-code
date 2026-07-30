@@ -13,14 +13,15 @@ import { apiPatch } from "@/lib/api";
 import { formatDate, titleCase } from "@/lib/utils";
 
 export default function AdminUsersPage() {
-  const { data: users, loading, error, refetch } = useFetch<AdminUserSummary[]>("/api/admin/users");
+  const { data: usersRes, loading, error, refetch } = useFetch<{ users: AdminUserSummary[] }>("/api/admin/users");
+  const users = usersRes?.users;
   const [search, setSearch] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const toggleSuspend = async (u: AdminUserSummary) => {
     setBusyId(u.id);
     try {
-      await apiPatch(`/api/admin/users/${u.id}`, { suspended: !u.suspended });
+      await apiPatch(`/api/admin/users/${u.id}/suspend`, { suspended: !u.suspended });
       refetch();
     } finally {
       setBusyId(null);

@@ -1,22 +1,26 @@
 "use client";
 
 import { Bar, BarChart, Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, CheckCircle2, Clock, BookOpen, Flame } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useAuth } from "@/lib/auth-context";
 import { useFetch } from "@/lib/hooks";
+import { formatDate, titleCase } from "@/lib/utils";
 
+/** Matches the shape returned by GET /api/statistics exactly. */
 interface StatisticsResponse {
-  goalsCompleted?: { period: string; count: number }[];
-  studyHours?: { period: string; hours: number }[];
-  readingHours?: { period: string; hours: number }[];
-  quizScoreTrend?: { date: string; scorePct: number }[];
-  gradeTrend?: { date: string; averagePct: number }[];
-  habitsCompletionRate?: { period: string; ratePct: number }[];
-  businessRevenueTrend?: { period: string; revenue: number; expenses: number }[];
+  goalsCompleted: number;
+  totalStudyHours: number;
+  totalReadingHours: number;
+  quizScoreTrend: { date: string; scorePercent: number }[];
+  gradeTrend: Record<string, { date: string; percent: number }[]>;
+  habitCompletionRate: number;
+  habitLogsTotal: number;
+  habitLogsCompleted: number;
+  business?: { byMonth: { month: string; revenue: number; expenses: number; profit: number }[] };
 }
 
 const tooltipStyle = { background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12 };
@@ -34,6 +38,12 @@ export default function StatisticsPage() {
   const { profile } = useAuth();
   const { data: stats, loading, error } = useFetch<StatisticsResponse>("/api/statistics");
 
+  const quizData = (stats?.quizScoreTrend ?? []).map((p) => ({
+    ...p,
+    dateLabel: formatDate(p.date, { month: "short", day: "numeric" }),
+  }));
+  const gradeSubjects = Object.entries(stats?.gradeTrend ?? {});
+
   return (
     <div>
       <PageHeader title="Statistics" subtitle="A bird's-eye view of your growth across every area." />
@@ -43,98 +53,81 @@ export default function StatisticsPage() {
       ) : error ? (
         <p className="text-sm text-red-500">{error}</p>
       ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <ChartCard title="Goals completed" empty={!stats?.goalsCompleted?.length}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats?.goalsCompleted}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis dataKey="period" stroke="var(--color-text-secondary)" fontSize={11} />
-                <YAxis stroke="var(--color-text-secondary)" fontSize={11} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="count" fill="var(--color-accent)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
+        <>
+          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <GlassCard>
+              <CheckCircle2 className="mb-2 h-5 w-5 text-[var(--color-accent)]" />
+              <p className="text-xs text-[var(--color-text-secondary)]">Goals completed</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--color-text-primary)]">{stats?.goalsCompleted ?? 0}</p>
+            </GlassCard>
+            {profile?.mode === "student" && (
+              <>
+                <GlassCard>
+                  <Clock className="mb-2 h-5 w-5 text-[var(--color-accent)]" />
+                  <p className="text-xs text-[var(--color-text-secondary)]">Study hours</p>
+                  <p className="mt-1 text-2xl font-bold text-[var(--color-text-primary)]">{stats?.totalStudyHours ?? 0}</p>
+                </GlassCard>
+                <GlassCard>
+                  <BookOpen className="mb-2 h-5 w-5 text-[var(--color-accent)]" />
+                  <p className="text-xs text-[var(--color-text-secondary)]">Reading hours (est.)</p>
+                  <p className="mt-1 text-2xl font-bold text-[var(--color-text-primary)]">{stats?.totalReadingHours ?? 0}</p>
+                </GlassCard>
+              </>
+            )}
+            <GlassCard>
+              <Flame className="mb-2 h-5 w-5 text-[var(--color-accent)]" />
+              <p className="text-xs text-[var(--color-text-secondary)]">Habit completion rate</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--color-text-primary)]">{stats?.habitCompletionRate ?? 0}%</p>
+            </GlassCard>
+          </div>
 
-          {profile?.mode === "student" && (
-            <>
-              <ChartCard title="Study hours" empty={!stats?.studyHours?.length}>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {profile?.mode === "student" && (
+              <>
+                <ChartCard title="Quiz score trend" empty={quizData.length === 0}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={quizData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                      <XAxis dataKey="dateLabel" stroke="var(--color-text-secondary)" fontSize={11} />
+                      <YAxis stroke="var(--color-text-secondary)" fontSize={11} domain={[0, 100]} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Line type="monotone" dataKey="scorePercent" stroke="var(--color-accent)" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartCard>
+
+                {gradeSubjects.map(([subject, points]) => (
+                  <ChartCard key={subject} title={`${titleCase(subject)} grades`} empty={points.length === 0}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={points.map((p) => ({ ...p, dateLabel: formatDate(p.date, { month: "short", day: "numeric" }) }))}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                        <XAxis dataKey="dateLabel" stroke="var(--color-text-secondary)" fontSize={11} />
+                        <YAxis stroke="var(--color-text-secondary)" fontSize={11} domain={[0, 100]} />
+                        <Tooltip contentStyle={tooltipStyle} />
+                        <Line type="monotone" dataKey="percent" stroke="#22c55e" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartCard>
+                ))}
+              </>
+            )}
+
+            {profile?.ownsBusiness && (
+              <ChartCard title="Revenue vs. expenses" empty={!stats?.business?.byMonth?.length}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats?.studyHours}>
+                  <BarChart data={stats?.business?.byMonth}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                    <XAxis dataKey="period" stroke="var(--color-text-secondary)" fontSize={11} />
+                    <XAxis dataKey="month" stroke="var(--color-text-secondary)" fontSize={11} />
                     <YAxis stroke="var(--color-text-secondary)" fontSize={11} />
                     <Tooltip contentStyle={tooltipStyle} />
-                    <Bar dataKey="hours" fill="var(--color-accent)" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="revenue" fill="var(--color-accent)" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="expenses" fill="#ef4444" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </ChartCard>
-
-              <ChartCard title="Reading hours" empty={!stats?.readingHours?.length}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats?.readingHours}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                    <XAxis dataKey="period" stroke="var(--color-text-secondary)" fontSize={11} />
-                    <YAxis stroke="var(--color-text-secondary)" fontSize={11} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Bar dataKey="hours" fill="#38bdf8" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
-
-              <ChartCard title="Quiz score trend" empty={!stats?.quizScoreTrend?.length}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={stats?.quizScoreTrend}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                    <XAxis dataKey="date" stroke="var(--color-text-secondary)" fontSize={11} />
-                    <YAxis stroke="var(--color-text-secondary)" fontSize={11} domain={[0, 100]} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Line type="monotone" dataKey="scorePct" stroke="var(--color-accent)" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartCard>
-
-              <ChartCard title="Grade improvement" empty={!stats?.gradeTrend?.length}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={stats?.gradeTrend}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                    <XAxis dataKey="date" stroke="var(--color-text-secondary)" fontSize={11} />
-                    <YAxis stroke="var(--color-text-secondary)" fontSize={11} domain={[0, 100]} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Line type="monotone" dataKey="averagePct" stroke="#22c55e" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            </>
-          )}
-
-          <ChartCard title="Habit completion rate" empty={!stats?.habitsCompletionRate?.length}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={stats?.habitsCompletionRate}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis dataKey="period" stroke="var(--color-text-secondary)" fontSize={11} />
-                <YAxis stroke="var(--color-text-secondary)" fontSize={11} domain={[0, 100]} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Line type="monotone" dataKey="ratePct" stroke="#f59e0b" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartCard>
-
-          {profile?.mode === "business" && (
-            <ChartCard title="Revenue vs. expenses" empty={!stats?.businessRevenueTrend?.length}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats?.businessRevenueTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis dataKey="period" stroke="var(--color-text-secondary)" fontSize={11} />
-                  <YAxis stroke="var(--color-text-secondary)" fontSize={11} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="revenue" fill="var(--color-accent)" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="expenses" fill="#ef4444" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          )}
-        </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

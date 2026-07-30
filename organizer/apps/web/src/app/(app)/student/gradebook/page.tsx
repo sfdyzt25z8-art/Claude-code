@@ -31,7 +31,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function GradebookPage() {
-  const { data: grades, loading, error, refetch } = useFetch<GradeEntry[]>("/api/student/grades");
+  const { data: gradesRes, loading, error, refetch } = useFetch<{ grades: GradeEntry[] }>("/api/student/grades");
+  const grades = gradesRes?.grades;
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 

@@ -27,7 +27,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function HabitsPage() {
-  const { data: habits, loading, error, refetch } = useFetch<Habit[]>("/api/personal/habits");
+  const { data: habitsRes, loading, error, refetch } = useFetch<{ habits: Habit[] }>("/api/personal/habits");
+  const habits = habitsRes?.habits;
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);

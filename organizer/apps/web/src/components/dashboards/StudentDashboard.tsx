@@ -20,11 +20,18 @@ interface GamificationLike {
 }
 
 export function StudentDashboard() {
-  const { data: homework, loading: hwLoading } = useFetch<Homework[]>("/api/student/homework");
-  const { data: exams, loading: examsLoading } = useFetch<Exam[]>("/api/student/exams/countdown");
-  const { data: plan, loading: planLoading } = useFetch<StudyPlanItem[]>("/api/student/study-plan");
-  const { data: reading, loading: readingLoading } = useFetch<ReadingEntry[]>("/api/student/reading");
-  const { data: gamification } = useFetch<GamificationLike>("/api/statistics/gamification");
+  const { data: homeworkRes, loading: hwLoading } = useFetch<{ homework: Homework[] }>("/api/student/homework");
+  const homework = homeworkRes?.homework;
+  const { data: examsRes, loading: examsLoading } = useFetch<{ exams: Exam[] }>("/api/student/exams/countdown");
+  const exams = examsRes?.exams;
+  const { data: planRes, loading: planLoading } = useFetch<{ studyPlanItems: StudyPlanItem[] }>(
+    "/api/student/study-plan"
+  );
+  const plan = planRes?.studyPlanItems;
+  const { data: readingRes, loading: readingLoading } = useFetch<{ reading: ReadingEntry[] }>("/api/student/reading");
+  const reading = readingRes?.reading;
+  const { data: gamificationRes } = useFetch<{ gamification: GamificationLike }>("/api/statistics/gamification");
+  const gamification = gamificationRes?.gamification;
 
   const upcomingHomework = (homework ?? [])
     .filter((h) => !h.completed)

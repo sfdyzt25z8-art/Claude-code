@@ -24,7 +24,7 @@ export function PersonalGoalsScreen() {
   async function load() {
     setLoading(true);
     try {
-      const data = await apiGet<PersonalGoal[]>("/api/personal/goals");
+      const { goals: data } = await apiGet<{ goals: PersonalGoal[] }>("/api/personal/goals");
       setGoals(data);
     } catch (e) {
       setError((e as Error).message);
@@ -43,7 +43,7 @@ export function PersonalGoalsScreen() {
     setSaving(true);
     setError(null);
     try {
-      const created = await apiPost<PersonalGoal>("/api/personal/goals", {
+      const { goal: created } = await apiPost<{ goal: PersonalGoal }>("/api/personal/goals", {
         focus,
         title: title.trim(),
         targetValue: targetNum,

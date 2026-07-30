@@ -34,7 +34,7 @@ export function CalendarScreen() {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiGet<CalendarEvent[]>("/api/calendar/events");
+      const { events: data } = await apiGet<{ events: CalendarEvent[] }>("/api/calendar");
       setEvents(data);
     } catch (e) {
       setError((e as Error).message);

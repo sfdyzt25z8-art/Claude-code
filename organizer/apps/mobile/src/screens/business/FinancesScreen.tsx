@@ -33,11 +33,11 @@ export function FinancesScreen() {
     setLoading(true);
     try {
       const [revenueData, expenseData] = await Promise.all([
-        apiGet<RevenueEntry[]>("/api/business/revenue"),
-        apiGet<ExpenseEntry[]>("/api/business/expenses"),
+        apiGet<{ revenue: RevenueEntry[] }>("/api/business/revenue"),
+        apiGet<{ expenses: ExpenseEntry[] }>("/api/business/expenses"),
       ]);
-      setRevenue(revenueData);
-      setExpenses(expenseData);
+      setRevenue(revenueData.revenue);
+      setExpenses(expenseData.expenses);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -56,7 +56,7 @@ export function FinancesScreen() {
     setError(null);
     try {
       if (kind === "revenue") {
-        const created = await apiPost<RevenueEntry>("/api/business/revenue", {
+        const { revenue: created } = await apiPost<{ revenue: RevenueEntry }>("/api/business/revenue", {
           amount: amountNum,
           currency,
           source: label.trim(),
@@ -64,7 +64,7 @@ export function FinancesScreen() {
         });
         setRevenue((prev) => [created, ...prev]);
       } else {
-        const created = await apiPost<ExpenseEntry>("/api/business/expenses", {
+        const { expense: created } = await apiPost<{ expense: ExpenseEntry }>("/api/business/expenses", {
           amount: amountNum,
           currency,
           category: label.trim(),

@@ -25,7 +25,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function AdminCoursesPage() {
-  const { data: courses, loading, error, refetch } = useFetch<AdminCourse[]>("/api/admin/courses");
+  const { data: coursesRes, loading, error, refetch } = useFetch<{ courses: AdminCourse[] }>("/api/admin/courses");
+  const courses = coursesRes?.courses;
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);

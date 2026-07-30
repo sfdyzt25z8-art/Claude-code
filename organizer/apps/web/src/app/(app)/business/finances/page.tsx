@@ -35,8 +35,14 @@ export default function FinancesPage() {
   const currency = profile?.currency ?? "USD";
   const [tab, setTab] = useState<"revenue" | "expenses">("revenue");
 
-  const { data: revenue, loading: revLoading, refetch: refetchRevenue } = useFetch<RevenueEntry[]>("/api/business/revenue");
-  const { data: expenses, loading: expLoading, refetch: refetchExpenses } = useFetch<ExpenseEntry[]>("/api/business/expenses");
+  const { data: revenueRes, loading: revLoading, refetch: refetchRevenue } = useFetch<{ revenue: RevenueEntry[] }>(
+    "/api/business/revenue"
+  );
+  const revenue = revenueRes?.revenue;
+  const { data: expensesRes, loading: expLoading, refetch: refetchExpenses } = useFetch<{ expenses: ExpenseEntry[] }>(
+    "/api/business/expenses"
+  );
+  const expenses = expensesRes?.expenses;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);

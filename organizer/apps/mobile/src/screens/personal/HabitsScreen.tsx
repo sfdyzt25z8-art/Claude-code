@@ -30,11 +30,11 @@ export function HabitsScreen() {
     setLoading(true);
     try {
       const [habitData, logData] = await Promise.all([
-        apiGet<Habit[]>("/api/personal/habits"),
-        apiGet<HabitLog[]>("/api/personal/habits/logs", { date: todayKey }),
+        apiGet<{ habits: Habit[] }>("/api/personal/habits"),
+        apiGet<{ habitLogs: HabitLog[] }>("/api/personal/habits/logs", { date: todayKey }),
       ]);
-      setHabits(habitData.filter((h) => !h.archived));
-      setTodayLogs(logData);
+      setHabits(habitData.habits.filter((h) => !h.archived));
+      setTodayLogs(logData.habitLogs);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -57,7 +57,7 @@ export function HabitsScreen() {
     setSaving(true);
     setError(null);
     try {
-      const created = await apiPost<Habit>("/api/personal/habits", {
+      const { habit: created } = await apiPost<{ habit: Habit }>("/api/personal/habits", {
         title: title.trim(),
         focus,
         frequency,
@@ -78,7 +78,7 @@ export function HabitsScreen() {
     setCheckingInId(habit.id);
     setError(null);
     try {
-      const log = await apiPost<HabitLog>(`/api/personal/habits/${habit.id}/logs`, {
+      const { habitLog: log } = await apiPost<{ habitLog: HabitLog }>(`/api/personal/habits/${habit.id}/log`, {
         date: todayKey,
         completed: true,
       });

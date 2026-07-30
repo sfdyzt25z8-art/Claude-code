@@ -15,7 +15,10 @@ import { titleCase, cn } from "@/lib/utils";
 
 interface SubmitResponse {
   attempt: QuizAttempt;
-  recommendations: QuizRecommendation;
+  correctAnswers: number[];
+  explanations: string[];
+  scorePercent: number;
+  recommendation: QuizRecommendation;
 }
 
 export default function QuizPage() {
@@ -34,8 +37,8 @@ export default function QuizPage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    apiPost<Quiz>("/api/student/quizzes", { subject })
-      .then((q) => {
+    apiPost<{ quiz: Quiz }>("/api/student/quizzes", { subject })
+      .then(({ quiz: q }) => {
         if (cancelled) return;
         setQuiz(q);
         setAnswers(new Array(q.questions.length).fill(-1));
@@ -121,10 +124,10 @@ export default function QuizPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {(
               [
-                ["Books", result.recommendations.books],
-                ["Courses", result.recommendations.courses],
-                ["Study plans", result.recommendations.studyPlans],
-                ["Practice exercises", result.recommendations.practiceExercises],
+                ["Books", result.recommendation.books],
+                ["Courses", result.recommendation.courses],
+                ["Study plans", result.recommendation.studyPlans],
+                ["Practice exercises", result.recommendation.practiceExercises],
               ] as const
             ).map(([label, list]) => (
               <div key={label}>

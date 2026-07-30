@@ -26,7 +26,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function AdminBooksPage() {
-  const { data: books, loading, error, refetch } = useFetch<AdminBook[]>("/api/admin/books");
+  const { data: booksRes, loading, error, refetch } = useFetch<{ books: AdminBook[] }>("/api/admin/books");
+  const books = booksRes?.books;
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);

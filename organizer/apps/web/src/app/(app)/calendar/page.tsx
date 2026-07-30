@@ -47,8 +47,9 @@ export default function CalendarPage() {
     return { from: startOfWeek(startOfMonth(cursor)), to: endOfWeek(endOfMonth(cursor)) };
   }, [view, cursor]);
 
-  const query = `/api/calendar/events?from=${range.from.toISOString()}&to=${range.to.toISOString()}`;
-  const { data: events, loading, error } = useFetch<CalendarEvent[]>(query, [query]);
+  const query = `/api/calendar?from=${range.from.toISOString()}&to=${range.to.toISOString()}`;
+  const { data: eventsRes, loading, error } = useFetch<{ events: CalendarEvent[] }>(query, [query]);
+  const events = eventsRes?.events;
 
   const days = useMemo(() => eachDayOfInterval({ start: range.from, end: range.to }), [range]);
 

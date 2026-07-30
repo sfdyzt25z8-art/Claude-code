@@ -6,6 +6,28 @@ import { enumToShared } from "../utils/serialize";
 
 const router = Router();
 
+/** GET /gamification - the current user's XP/level/coins/streak snapshot. */
+router.get(
+  "/gamification",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const gamification = await prisma.gamification.findUnique({ where: { userId: req.user!.id } });
+    res.json({
+      gamification: gamification
+        ? {
+            userId: gamification.userId,
+            xp: gamification.xp,
+            level: gamification.level,
+            coins: gamification.coins,
+            currentStreak: gamification.currentStreak,
+            longestStreak: gamification.longestStreak,
+            lastActivityDate: gamification.lastActivityDate ? gamification.lastActivityDate.toISOString() : null,
+          }
+        : { userId: req.user!.id, xp: 0, level: 1, coins: 0, currentStreak: 0, longestStreak: 0, lastActivityDate: null },
+    });
+  })
+);
+
 /**
  * GET /api/statistics
  * A single dashboard-style aggregate endpoint: goal completion, study/reading

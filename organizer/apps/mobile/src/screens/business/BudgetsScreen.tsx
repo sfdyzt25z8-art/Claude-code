@@ -27,7 +27,7 @@ export function BudgetsScreen() {
   async function load() {
     setLoading(true);
     try {
-      const data = await apiGet<Budget[]>("/api/business/budgets");
+      const { budgets: data } = await apiGet<{ budgets: Budget[] }>("/api/business/budgets");
       setBudgets(data);
     } catch (e) {
       setError((e as Error).message);
@@ -46,7 +46,7 @@ export function BudgetsScreen() {
     setSaving(true);
     setError(null);
     try {
-      const created = await apiPost<Budget>("/api/business/budgets", {
+      const { budget: created } = await apiPost<{ budget: Budget }>("/api/business/budgets", {
         category: category.trim(),
         limit: limitNum,
         currency,

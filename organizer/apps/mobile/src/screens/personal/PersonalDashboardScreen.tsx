@@ -24,11 +24,11 @@ export function PersonalDashboardScreen({ navigation }: Props) {
     setLoading(true);
     try {
       const [habitData, goalData] = await Promise.all([
-        apiGet<Habit[]>("/api/personal/habits"),
-        apiGet<PersonalGoal[]>("/api/personal/goals"),
+        apiGet<{ habits: Habit[] }>("/api/personal/habits"),
+        apiGet<{ goals: PersonalGoal[] }>("/api/personal/goals"),
       ]);
-      setHabits(habitData.filter((h) => !h.archived));
-      setGoals(goalData);
+      setHabits(habitData.habits.filter((h) => !h.archived));
+      setGoals(goalData.goals);
     } catch (e) {
       console.warn("Failed to load personal dashboard", e);
     } finally {

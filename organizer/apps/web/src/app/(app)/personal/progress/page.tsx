@@ -12,7 +12,8 @@ import { useFetch } from "@/lib/hooks";
 import { formatDate, titleCase } from "@/lib/utils";
 
 export default function PersonalProgressPage() {
-  const { data: checkins, loading, error } = useFetch<ProgressCheckIn[]>("/api/personal/progress-checkins");
+  const { data: checkinsRes, loading, error } = useFetch<{ checkIns: ProgressCheckIn[] }>("/api/personal/check-ins");
+  const checkins = checkinsRes?.checkIns;
 
   const byFocus = useMemo(() => {
     const map = new Map<string, { date: string; value: number }[]>();

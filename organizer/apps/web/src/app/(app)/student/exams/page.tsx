@@ -29,7 +29,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function ExamsPage() {
-  const { data: exams, loading, error, refetch } = useFetch<Exam[]>("/api/student/exams/countdown");
+  const { data: examsRes, loading, error, refetch } = useFetch<{ exams: Exam[] }>("/api/student/exams/countdown");
+  const exams = examsRes?.exams;
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 

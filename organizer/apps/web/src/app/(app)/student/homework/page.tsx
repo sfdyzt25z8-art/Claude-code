@@ -29,7 +29,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function HomeworkPage() {
-  const { data: homework, loading, error, refetch } = useFetch<Homework[]>("/api/student/homework");
+  const { data: homeworkRes, loading, error, refetch } = useFetch<{ homework: Homework[] }>("/api/student/homework");
+  const homework = homeworkRes?.homework;
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);

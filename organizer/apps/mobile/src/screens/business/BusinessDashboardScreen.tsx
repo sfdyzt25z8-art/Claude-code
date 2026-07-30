@@ -25,13 +25,13 @@ export function BusinessDashboardScreen({ navigation }: Props) {
     setLoading(true);
     try {
       const [revenueData, expenseData, goalData] = await Promise.all([
-        apiGet<RevenueEntry[]>("/api/business/revenue"),
-        apiGet<ExpenseEntry[]>("/api/business/expenses"),
-        apiGet<BusinessGoal[]>("/api/business/goals"),
+        apiGet<{ revenue: RevenueEntry[] }>("/api/business/revenue"),
+        apiGet<{ expenses: ExpenseEntry[] }>("/api/business/expenses"),
+        apiGet<{ goals: BusinessGoal[] }>("/api/business/goals"),
       ]);
-      setRevenue(revenueData);
-      setExpenses(expenseData);
-      setGoals(goalData);
+      setRevenue(revenueData.revenue);
+      setExpenses(expenseData.expenses);
+      setGoals(goalData.goals);
     } catch (e) {
       console.warn("Failed to load business dashboard", e);
     } finally {

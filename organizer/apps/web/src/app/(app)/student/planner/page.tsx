@@ -28,7 +28,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function PlannerPage() {
-  const { data: plan, loading, error, refetch } = useFetch<StudyPlanItem[]>("/api/student/study-plan");
+  const { data: planRes, loading, error, refetch } = useFetch<{ studyPlanItems: StudyPlanItem[] }>("/api/student/study-plan");
+  const plan = planRes?.studyPlanItems;
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);

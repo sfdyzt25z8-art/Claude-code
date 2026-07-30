@@ -30,8 +30,10 @@ type FormValues = z.infer<typeof schema>;
 export default function BudgetPage() {
   const { profile } = useAuth();
   const currency = profile?.currency ?? "USD";
-  const { data: budgets, loading, error, refetch } = useFetch<Budget[]>("/api/business/budgets");
-  const { data: expenses } = useFetch<ExpenseEntry[]>("/api/business/expenses");
+  const { data: budgetsRes, loading, error, refetch } = useFetch<{ budgets: Budget[] }>("/api/business/budgets");
+  const budgets = budgetsRes?.budgets;
+  const { data: expensesRes } = useFetch<{ expenses: ExpenseEntry[] }>("/api/business/expenses");
+  const expenses = expensesRes?.expenses;
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 

@@ -27,11 +27,18 @@ function monthLabel(key: string) {
 function OwnerDashboard() {
   const { profile } = useAuth();
   const currency = profile?.currency ?? "USD";
-  const { data: revenue, loading: revLoading } = useFetch<RevenueEntry[]>("/api/business/revenue");
-  const { data: expenses, loading: expLoading } = useFetch<ExpenseEntry[]>("/api/business/expenses");
-  const { data: budgets, loading: budgetsLoading } = useFetch<Budget[]>("/api/business/budgets");
-  const { data: goals, loading: goalsLoading } = useFetch<BusinessGoal[]>("/api/business/goals");
-  const { data: marketing, loading: marketingLoading } = useFetch<MarketingPlanItem[]>("/api/business/marketing");
+  const { data: revenueRes, loading: revLoading } = useFetch<{ revenue: RevenueEntry[] }>("/api/business/revenue");
+  const revenue = revenueRes?.revenue;
+  const { data: expensesRes, loading: expLoading } = useFetch<{ expenses: ExpenseEntry[] }>("/api/business/expenses");
+  const expenses = expensesRes?.expenses;
+  const { data: budgetsRes, loading: budgetsLoading } = useFetch<{ budgets: Budget[] }>("/api/business/budgets");
+  const budgets = budgetsRes?.budgets;
+  const { data: goalsRes, loading: goalsLoading } = useFetch<{ goals: BusinessGoal[] }>("/api/business/goals");
+  const goals = goalsRes?.goals;
+  const { data: marketingRes, loading: marketingLoading } = useFetch<{ marketingItems: MarketingPlanItem[] }>(
+    "/api/business/marketing"
+  );
+  const marketing = marketingRes?.marketingItems;
 
   const chartData = useMemo(() => {
     const buckets = new Map<string, { revenue: number; expenses: number }>();
@@ -220,7 +227,8 @@ function OwnerDashboard() {
 }
 
 function EmployeeDashboard() {
-  const { data: careerGoals, loading } = useFetch<CareerGoal[]>("/api/business/career-goals");
+  const { data: careerGoalsRes, loading } = useFetch<{ careerGoals: CareerGoal[] }>("/api/business/career-goals");
+  const careerGoals = careerGoalsRes?.careerGoals;
   const active = (careerGoals ?? []).filter((g) => !g.completed);
 
   const byCategory = useMemo(() => {

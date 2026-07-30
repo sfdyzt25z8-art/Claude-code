@@ -832,6 +832,28 @@ router.post(
 
 // ---------- Mini games ----------
 
+/** GET /mini-games/scores - the current user's own recent scores across all games. */
+router.get(
+  "/mini-games/scores",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const entries = await prisma.miniGameScore.findMany({
+      where: { userId: req.user!.id },
+      orderBy: { playedAt: "desc" },
+      take: 50,
+    });
+    res.json({
+      scores: entries.map((s) => ({
+        id: s.id,
+        userId: s.userId,
+        game: enumToShared(s.game),
+        score: s.score,
+        playedAt: s.playedAt.toISOString(),
+      })),
+    });
+  })
+);
+
 router.post(
   "/mini-games/scores",
   requireAuth,

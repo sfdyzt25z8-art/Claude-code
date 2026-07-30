@@ -42,9 +42,10 @@ export function QuizPlayScreen({ route, navigation }: Props) {
     setError(null);
     try {
       const finalAnswers = answers.map((a) => a ?? -1);
-      const attempt = await apiPost<QuizAttempt>(`/api/student/quizzes/${quiz.id}/attempts`, {
-        answers: finalAnswers,
-      });
+      const { attempt } = await apiPost<{ attempt: QuizAttempt }>(
+        `/api/student/quizzes/${quiz.id}/submit`,
+        { answers: finalAnswers }
+      );
       navigation.replace("QuizResult", {
         quizId: quiz.id,
         score: attempt.score,

@@ -233,6 +233,31 @@ router.delete(
   })
 );
 
+/** GET /habits/logs?date= - the current user's habit logs for a given day (defaults to today). */
+router.get(
+  "/habits/logs",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const dateParam = typeof req.query.date === "string" ? req.query.date : undefined;
+    const day = dateParam ? new Date(dateParam) : new Date();
+    const startOfDay = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+    const endOfDay = new Date(startOfDay.getTime() + 86_400_000);
+
+    const logs = await prisma.habitLog.findMany({
+      where: { userId: req.user!.id, date: { gte: startOfDay, lt: endOfDay } },
+    });
+    res.json({
+      habitLogs: logs.map((l) => ({
+        id: l.id,
+        habitId: l.habitId,
+        userId: l.userId,
+        date: l.date.toISOString(),
+        completed: l.completed,
+      })),
+    });
+  })
+);
+
 /** POST /habits/:id/log - creates a HabitLog, awards XP, updates the user's streak. */
 router.post(
   "/habits/:id/log",

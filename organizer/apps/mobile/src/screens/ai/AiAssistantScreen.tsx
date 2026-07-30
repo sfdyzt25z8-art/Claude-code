@@ -35,11 +35,13 @@ export function AiAssistantScreen() {
     // isn't empty every time the tab is reopened.
     (async () => {
       try {
-        const conversations = await apiGet<AiConversation[]>("/api/ai/conversations");
+        const { conversations } = await apiGet<{ conversations: AiConversation[] }>("/api/ai/conversations");
         const latest = conversations[0];
         if (latest) {
           setConversationId(latest.id);
-          const history = await apiGet<ChatMessage[]>(`/api/ai/conversations/${latest.id}/messages`);
+          const { messages: history } = await apiGet<{ messages: ChatMessage[] }>(
+            `/api/ai/conversations/${latest.id}/messages`
+          );
           setMessages(
             history
               .filter((m) => m.role !== "system")

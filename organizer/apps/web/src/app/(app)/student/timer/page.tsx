@@ -22,7 +22,10 @@ function formatElapsed(seconds: number): string {
 }
 
 export default function TimerPage() {
-  const { data: sessions, loading, error, refetch } = useFetch<StudySession[]>("/api/student/study-sessions");
+  const { data: sessionsRes, loading, error, refetch } = useFetch<{ studySessions: StudySession[] }>(
+    "/api/student/study-sessions"
+  );
+  const sessions = sessionsRes?.studySessions;
   const [subject, setSubject] = useState<string>(SUBJECTS[0]!);
   const [active, setActive] = useState<StudySession | null>(null);
   const [elapsed, setElapsed] = useState(0);
@@ -49,8 +52,11 @@ export default function TimerPage() {
     setStarting(true);
     setActionError(null);
     try {
-      const session = await apiPost<StudySession>("/api/student/study-sessions/start", { subject });
-      setActive(session);
+      const { studySession } = await apiPost<{ studySession: StudySession }>(
+        "/api/student/study-sessions/start",
+        { subject }
+      );
+      setActive(studySession);
       setElapsed(0);
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : "Could not start session.");

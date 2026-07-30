@@ -24,8 +24,8 @@ export function GradebookScreen() {
   async function load() {
     setLoading(true);
     try {
-      const data = await apiGet<GradeEntry[]>("/api/student/grades");
-      setItems(data);
+      const { grades } = await apiGet<{ grades: GradeEntry[] }>("/api/student/grades");
+      setItems(grades);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -56,7 +56,7 @@ export function GradebookScreen() {
     setSaving(true);
     setError(null);
     try {
-      const created = await apiPost<GradeEntry>("/api/student/grades", {
+      const { grade: created } = await apiPost<{ grade: GradeEntry }>("/api/student/grades", {
         subject,
         assignmentName: assignmentName.trim(),
         score: scoreNum,

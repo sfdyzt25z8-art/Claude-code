@@ -30,14 +30,16 @@ type FormValues = z.infer<typeof schema>;
 interface SummaryResponse {
   totalInvested?: number;
   totalCurrentValue?: number;
-  totalReturn?: number;
-  totalReturnPct?: number;
+  totalGain?: number;
 }
 
 export default function InvestmentsPage() {
   const { profile } = useAuth();
   const currency = profile?.currency ?? "USD";
-  const { data: investments, loading, error, refetch } = useFetch<InvestmentEntry[]>("/api/business/investments");
+  const { data: investmentsRes, loading, error, refetch } = useFetch<{ investments: InvestmentEntry[] }>(
+    "/api/business/investments"
+  );
+  const investments = investmentsRes?.investments;
   const { data: summary } = useFetch<SummaryResponse>("/api/business/investments/summary");
   const [modalOpen, setModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -63,7 +65,7 @@ export default function InvestmentsPage() {
 
   const totalInvested = summary?.totalInvested ?? (investments ?? []).reduce((s, i) => s + i.amount, 0);
   const totalCurrent = summary?.totalCurrentValue ?? (investments ?? []).reduce((s, i) => s + i.currentValue, 0);
-  const totalReturn = summary?.totalReturn ?? totalCurrent - totalInvested;
+  const totalReturn = summary?.totalGain ?? totalCurrent - totalInvested;
 
   return (
     <div>

@@ -22,7 +22,7 @@ export function ProgressScreen() {
   async function load() {
     setLoading(true);
     try {
-      const data = await apiGet<ProgressCheckIn[]>("/api/personal/progress-checkins");
+      const { checkIns: data } = await apiGet<{ checkIns: ProgressCheckIn[] }>("/api/personal/check-ins");
       setCheckIns(
         data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
       );
@@ -43,7 +43,7 @@ export function ProgressScreen() {
     setSaving(true);
     setError(null);
     try {
-      const created = await apiPost<ProgressCheckIn>("/api/personal/progress-checkins", {
+      const { checkIn: created } = await apiPost<{ checkIn: ProgressCheckIn }>("/api/personal/check-ins", {
         focus,
         date: new Date().toISOString(),
         value: valueNum,

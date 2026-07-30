@@ -26,14 +26,17 @@ const GAME_META: Record<MiniGameKey, { title: string; icon: typeof Brain; playab
 };
 
 export default function MiniGamesPage() {
-  const { data: scores, loading, refetch } = useFetch<MiniGameScore[]>("/api/student/mini-game-scores");
+  const { data: scoresRes, loading, refetch } = useFetch<{ scores: MiniGameScore[] }>(
+    "/api/student/mini-games/scores"
+  );
+  const scores = scoresRes?.scores;
   const [openGame, setOpenGame] = useState<MiniGameKey | null>(null);
   const [lastScore, setLastScore] = useState<number | null>(null);
 
   const recordScore = async (game: MiniGameKey, score: number) => {
     setLastScore(score);
     try {
-      await apiPost<MiniGameScore>("/api/student/mini-game-scores", { game, score });
+      await apiPost<{ miniGameScore: MiniGameScore }>("/api/student/mini-games/scores", { game, score });
       refetch();
     } catch {
       // score still shown locally even if sync fails
