@@ -1,0 +1,91 @@
+import { describe, it, expect } from 'vitest';
+import { createInitialState, GAME_DAY_SECONDS } from './gameEngine';
+import { advanceTime } from './gameTick';
+import { xpForNextLevel } from '@/data/levels';
+import type { OwnedBusiness } from '@/types/game';
+
+function lemonadeStand(): OwnedBusiness {
+  return {
+    instanceId: 'biz_1',
+    templateId: 'lemonade_stand',
+    purchasedAt: 0,
+    upgrades: { equipment: 0, marketing: 0, staff: 0, technology: 0, buildings: 0 },
+    employeeIds: [],
+  };
+}
+
+describe('advanceTime', () => {
+  it('is a no-op for zero or negative elapsed time', () => {
+    const state = createInitialState();
+    const result = advanceTime(state, 0, state.lastTickAt);
+    expect(result.state).toBe(state);
+    expect(result.daysPassed).toBe(0);
+  });
+
+  it('accrues cash proportional to daily profit and elapsed time', () => {
+    const state = createInitialState();
+    state.businesses = [lemonadeStand()];
+    // lemonade stand: $150 income - $40 expense = $110/day profit
+    const elapsed = GAME_DAY_SECONDS / 2; // half a day
+    const result = advanceTime(state, elapsed, state.lastTickAt + elapsed * 1000);
+    expect(result.state.cash).toBeCloseTo(state.cash + 55, 5);
+  });
+
+  it('does not roll the day forward for a small elapsed time', () => {
+    const state = createInitialState();
+    const result = advanceTime(state, 5, state.lastTickAt + 5000);
+    expect(result.state.day).toBe(1);
+    expect(result.daysPassed).toBe(0);
+    expect(result.state.netWorthHistory).toHaveLength(1);
+  });
+
+  it('rolls the day forward once a full in-game day elapses, adding a net worth point', () => {
+    const state = createInitialState();
+    const now = state.lastTickAt + (GAME_DAY_SECONDS + 5) * 1000;
+    const result = advanceTime(state, GAME_DAY_SECONDS + 5, now);
+    expect(result.state.day).toBe(2);
+    expect(result.daysPassed).toBe(1);
+    expect(result.state.netWorthHistory).toHaveLength(2);
+    expect(result.state.netWorthHistory.at(-1)?.day).toBe(2);
+  });
+
+  it('caps day rollover per call so a huge offline gap does not spin forever', () => {
+    const state = createInitialState();
+    const hugeElapsedSeconds = GAME_DAY_SECONDS * 50;
+    const now = state.lastTickAt + hugeElapsedSeconds * 1000;
+    const result = advanceTime(state, hugeElapsedSeconds, now);
+    // day still jumps all the way to the computed day...
+    expect(result.state.day).toBe(51);
+    // ...but only up to MAX_DAYS_ROLLED_AT_ONCE events are actually rolled/logged
+    expect(result.state.eventLog.length).toBeLessThanOrEqual(8);
+  });
+
+  it('unlocks achievements and grants their XP when a milestone is crossed', () => {
+    const state = createInitialState();
+    state.businesses = [lemonadeStand()];
+    const result = advanceTime(state, 1, state.lastTickAt + 1000);
+    expect(result.newAchievements).toContain('first_business');
+    expect(result.state.achievementsUnlocked).toContain('first_business');
+    expect(result.state.xp).toBeGreaterThan(0);
+  });
+
+  it('reports leveledUp when accumulated XP crosses the level-1 threshold', () => {
+    const state = createInitialState();
+    // Sit just 10 XP shy of the level-2 threshold; the "first_business" achievement
+    // (50 XP) should be enough to push it over.
+    state.xp = xpForNextLevel(1) - 10;
+    state.level = 1;
+    state.businesses = [lemonadeStand()];
+    const result = advanceTime(state, 1, state.lastTickAt + 1000);
+    expect(result.newAchievements).toContain('first_business');
+    expect(result.leveledUp).toBe(true);
+    expect(result.state.level).toBe(2);
+  });
+
+  it('advances lastTickAt to the provided now', () => {
+    const state = createInitialState();
+    const now = state.lastTickAt + 1000;
+    const result = advanceTime(state, 1, now);
+    expect(result.state.lastTickAt).toBe(now);
+  });
+});
