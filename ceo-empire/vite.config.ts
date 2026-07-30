@@ -72,8 +72,11 @@ export default defineConfig({
     },
   },
   test: {
+    // Pure logic tests (.test.ts) default to node; component tests (.test.tsx)
+    // opt into jsdom individually via a `// @vitest-environment jsdom` pragma.
     environment: 'node',
     globals: false,
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
+    setupFiles: ['src/test/setup.ts'],
   },
 })

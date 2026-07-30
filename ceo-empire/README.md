@@ -94,6 +94,11 @@ Routing uses `HashRouter` (URLs like `#/dashboard`) and Vite's `base: './'` spec
 build works unmodified from any static host or subpath — GitHub Pages, Netlify, Vercel, S3, or
 a plain `npm run preview` — with no server-side rewrite rules required.
 
+> **Note:** the Open Graph/Twitter card tags in `index.html` (`og:url`, `og:image`,
+> `twitter:image`) are hardcoded to `https://sfdyzt25z8-art.github.io/Claude-code/` — the
+> default URL for this exact deploy setup. If you deploy to a different host, path, or custom
+> domain, update those four `content` values to match, or link previews won't find the image.
+
 The production build is also an installable PWA (service worker + manifest via
 `vite-plugin-pwa`): visiting the deployed URL offers an install prompt, and the whole app shell
 is precached so it keeps working offline after the first visit — verified by loading the app,
