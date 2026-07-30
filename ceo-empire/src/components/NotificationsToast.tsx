@@ -42,7 +42,12 @@ export function NotificationsToast() {
   }, [notifications]);
 
   return (
-    <div className="pointer-events-none fixed top-4 right-4 z-[60] flex w-full max-w-sm flex-col gap-2">
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="false"
+      className="pointer-events-none fixed top-4 right-4 z-[60] flex w-full max-w-sm flex-col gap-2"
+    >
       <AnimatePresence>
         {notifications.slice(-4).map((n) => (
           <motion.div
@@ -64,6 +69,7 @@ export function NotificationsToast() {
             </div>
             <button
               onClick={() => dismiss(n.id)}
+              aria-label="Dismiss notification"
               className="shrink-0 rounded-md p-1 text-white/30 hover:bg-white/10 hover:text-white cursor-pointer"
             >
               <X className="h-3.5 w-3.5" />

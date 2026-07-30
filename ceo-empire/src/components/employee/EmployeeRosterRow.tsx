@@ -36,6 +36,7 @@ export function EmployeeRosterRow({
       <select
         value={employee.assignedBusinessId ?? ''}
         onChange={(e) => onAssign(e.target.value || null)}
+        aria-label={`Assign ${employee.name} to a business`}
         className="rounded-lg border border-white/10 bg-ink-900/70 px-2.5 py-1.5 text-xs text-white outline-none focus:border-gold-500/50"
       >
         <option value="">Unassigned</option>
@@ -53,6 +54,7 @@ export function EmployeeRosterRow({
         onClick={onFire}
         className="rounded-lg p-1.5 text-white/30 hover:bg-red-500/10 hover:text-red-400 cursor-pointer"
         title="Fire employee"
+        aria-label={`Fire ${employee.name}`}
       >
         <UserMinus className="h-4 w-4" />
       </button>

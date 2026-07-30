@@ -163,6 +163,7 @@ export function BusinessDetailModal({
                       onClick={() => fireEmployee(emp.id)}
                       className="rounded-lg p-1.5 text-white/30 hover:bg-red-500/10 hover:text-red-400 cursor-pointer"
                       title="Fire employee"
+                      aria-label={`Fire ${emp.name}`}
                     >
                       <UserMinus className="h-4 w-4" />
                     </button>
