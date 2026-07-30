@@ -35,11 +35,13 @@ Built with React, TypeScript, Vite, Tailwind CSS, Firebase Authentication, and F
 - **Settings** — dark/light theme, sound & music toggles.
 - **Autosave** — to `localStorage` always, and to Firestore every ~20s when signed in, with an
   offline-progress catch-up (and "welcome back" summary) on return.
+- **Installable PWA** — installable to your home screen/dock with its own icon, and the app
+  shell (including all game logic) works fully offline after the first load.
 
 ## Tech stack
 
 React 19 · TypeScript · Vite · Tailwind CSS v4 · Zustand · React Router · Firebase
-(Auth + Firestore) · Recharts · Framer Motion · lucide-react
+(Auth + Firestore) · Recharts · Framer Motion · lucide-react · vite-plugin-pwa
 
 ## Getting started
 
@@ -91,6 +93,11 @@ already passes them through to the build.
 Routing uses `HashRouter` (URLs like `#/dashboard`) and Vite's `base: './'` specifically so the
 build works unmodified from any static host or subpath — GitHub Pages, Netlify, Vercel, S3, or
 a plain `npm run preview` — with no server-side rewrite rules required.
+
+The production build is also an installable PWA (service worker + manifest via
+`vite-plugin-pwa`): visiting the deployed URL offers an install prompt, and the whole app shell
+is precached so it keeps working offline after the first visit — verified by loading the app,
+going offline, and reloading.
 
 ## Scripts
 
