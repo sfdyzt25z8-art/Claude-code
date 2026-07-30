@@ -53,6 +53,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   extra: {
     eas: {
+      // Replace with the real ID `eas init` assigns the first time you run
+      // an EAS build for this project (see docs/STORE_SUBMISSION.md).
       projectId: "organizer-mobile-placeholder",
     },
   },

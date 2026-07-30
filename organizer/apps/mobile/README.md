@@ -143,13 +143,20 @@ real slice, not full web parity)
   `expo-blur`'s `BlurView`), `Button`, `Input`, `ProgressBar`, `Badge` — all
   theme-aware via `useTheme()`.
 
-## EAS build (high-level, not run in this pass)
+## EAS build
+
+`eas.json` (development/preview/production build profiles + a submit
+config) is already checked in. To actually build/submit:
 
 1. `npm install -g eas-cli` then `eas login`.
-2. `eas build:configure` to generate a real `extra.eas.projectId` (currently
-   a placeholder in `app.config.ts`) and `eas.json`.
+2. `eas init` to replace the placeholder `extra.eas.projectId` in
+   `app.config.ts` with a real one tied to your Expo account.
 3. `eas build --platform ios|android --profile production`.
 4. `eas submit` to push to App Store Connect / Google Play Console.
+
+See [`../../docs/STORE_SUBMISSION.md`](../../docs/STORE_SUBMISSION.md) for
+the full pre-submission checklist (accounts, store listing content,
+screenshots, credentials).
 
 Push notifications additionally require an Expo push notification
 credentials setup (`eas credentials`) and, for iOS, an APNs key uploaded to
