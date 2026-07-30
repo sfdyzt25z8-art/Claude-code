@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { useState } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import { Modal } from './Modal';
 
 function Harness({ initialOpen = false }: { initialOpen?: boolean }) {
@@ -83,5 +84,16 @@ describe('Modal', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
 
     expect(document.activeElement).toBe(trigger);
+  });
+
+  it('has no accessibility violations while open', async () => {
+    const { container } = render(
+      <Modal open={true} onClose={() => {}} title="Confirm action">
+        <p>Are you sure?</p>
+        <button>Cancel</button>
+        <button>Confirm</button>
+      </Modal>,
+    );
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

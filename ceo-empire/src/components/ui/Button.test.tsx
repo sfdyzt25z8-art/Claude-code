@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import { Button } from './Button';
 
 describe('Button', () => {
@@ -45,5 +46,15 @@ describe('Button', () => {
     );
     expect(screen.queryByTestId('icon')).not.toBeInTheDocument();
     expect(container.querySelector('.animate-spin')).toBeInTheDocument();
+  });
+
+  it('has no accessibility violations in its default or disabled states', async () => {
+    const { container } = render(
+      <>
+        <Button>Buy for $500</Button>
+        <Button disabled>Not enough cash</Button>
+      </>,
+    );
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

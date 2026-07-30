@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useState } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import { ErrorBoundary } from './ErrorBoundary';
 
 function Bomb({ shouldThrow }: { shouldThrow: boolean }) {
@@ -78,5 +79,14 @@ describe('ErrorBoundary', () => {
       call.some((arg) => arg instanceof Error && arg.message === 'boom'),
     );
     expect(loggedOurError).toBe(true);
+  });
+
+  it('has no accessibility violations in its fallback state', async () => {
+    const { container } = render(
+      <ErrorBoundary label="test">
+        <Bomb shouldThrow={true} />
+      </ErrorBoundary>,
+    );
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

@@ -24,7 +24,11 @@ export default function AchievementsPage() {
             {unlocked.length} / {ACHIEVEMENT_DEFINITIONS.length}
           </span>
         </div>
-        <ProgressBar value={unlocked.length} max={ACHIEVEMENT_DEFINITIONS.length} />
+        <ProgressBar
+          value={unlocked.length}
+          max={ACHIEVEMENT_DEFINITIONS.length}
+          ariaLabel={`${unlocked.length} of ${ACHIEVEMENT_DEFINITIONS.length} achievements unlocked`}
+        />
       </Card>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

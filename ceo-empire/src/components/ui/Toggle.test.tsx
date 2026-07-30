@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import { Toggle } from './Toggle';
 
 describe('Toggle', () => {
@@ -26,5 +27,10 @@ describe('Toggle', () => {
     render(<Toggle checked={true} onChange={onChange} label="Sound" />);
     fireEvent.click(screen.getByRole('switch'));
     expect(onChange).toHaveBeenCalledWith(false);
+  });
+
+  it('has no accessibility violations', async () => {
+    const { container } = render(<Toggle checked={true} onChange={() => {}} label="Dark mode" />);
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

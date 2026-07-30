@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import { ProgressBar } from './ProgressBar';
 
 function getFillWidth(container: HTMLElement): string {
@@ -37,5 +38,19 @@ describe('ProgressBar', () => {
   it('renders no label text when omitted', () => {
     const { container } = render(<ProgressBar value={1} max={10} />);
     expect(container.querySelector('span')).not.toBeInTheDocument();
+  });
+
+  it('exposes progress semantics to assistive tech via ARIA', () => {
+    render(<ProgressBar value={25} max={100} label="XP progress" />);
+    const bar = screen.getByRole('progressbar');
+    expect(bar).toHaveAttribute('aria-valuenow', '25');
+    expect(bar).toHaveAttribute('aria-valuemin', '0');
+    expect(bar).toHaveAttribute('aria-valuemax', '100');
+    expect(bar).toHaveAccessibleName('XP progress');
+  });
+
+  it('has no accessibility violations', async () => {
+    const { container } = render(<ProgressBar value={40} max={100} label="Level progress" />);
+    expect(await axe(container)).toHaveNoViolations();
   });
 });
