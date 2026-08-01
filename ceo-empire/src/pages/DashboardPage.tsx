@@ -63,7 +63,11 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="w-full sm:w-64">
-            <ProgressBar value={progress.currentLevelXp} max={progress.xpToNextLevel} />
+            <ProgressBar
+              value={progress.currentLevelXp}
+              max={progress.xpToNextLevel}
+              ariaLabel={`${progress.currentLevelXp} of ${progress.xpToNextLevel} XP to next level`}
+            />
           </div>
         </div>
       </Card>

@@ -1,0 +1,32 @@
+name: CEO Empire CI
+
+on:
+  pull_request:
+    paths:
+      - "ceo-empire/**"
+      - ".github/workflows/ceo-empire-ci.yml"
+
+# Cancel a run if the same PR gets a new push before it finishes.
+concurrency:
+  group: ceo-empire-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-test-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ceo-empire
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ceo-empire/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build

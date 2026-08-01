@@ -1,9 +1,10 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Sparkles, RefreshCw } from 'lucide-react';
 import { useGameStore } from '@/store/gameStore';
 import { generateAdvice } from '@/lib/aiAdvisor';
 import { Icon } from '@/components/ui/Icon';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import clsx from 'clsx';
 
 const TONE_STYLES: Record<string, string> = {
@@ -23,6 +24,8 @@ const TONE_ICON_COLOR: Record<string, string> = {
 export function AiAdvisorPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const state = useGameStore((s) => s.state);
   const advice = useMemo(() => generateAdvice(state), [state]);
+  const panelRef = useRef<HTMLElement>(null);
+  useFocusTrap(panelRef, open);
 
   useEffect(() => {
     if (!open) return;
@@ -45,10 +48,12 @@ export function AiAdvisorPanel({ open, onClose }: { open: boolean; onClose: () =
             onClick={onClose}
           />
           <motion.aside
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-label="AI Business Advisor"
-            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-white/10 bg-ink-900 shadow-2xl"
+            tabIndex={-1}
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-white/10 bg-ink-900 shadow-2xl outline-none"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -66,6 +71,7 @@ export function AiAdvisorPanel({ open, onClose }: { open: boolean; onClose: () =
               </div>
               <button
                 onClick={onClose}
+                aria-label="Close AI Business Advisor"
                 className="rounded-lg p-1.5 text-white/50 hover:bg-white/10 hover:text-white cursor-pointer"
               >
                 <X className="h-4 w-4" />
