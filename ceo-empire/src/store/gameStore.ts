@@ -14,6 +14,7 @@ import { getInvestmentAsset } from '@/data/investments';
 import { getEventTemplate } from '@/data/events';
 import { getAchievement } from '@/data/achievements';
 import { getLifestyleItem } from '@/data/lifestyle';
+import { getActivity } from '@/data/activities';
 import {
   createInitialState,
   employeeCapacity,
@@ -62,6 +63,7 @@ interface GameStoreState {
   buyInvestment: (assetId: string, dollarAmount: number) => ActionResult;
   sellInvestment: (assetId: string, quantity: number) => ActionResult;
   buyLifestyleItem: (itemId: string) => ActionResult;
+  doActivity: (activityId: string) => ActionResult;
   claimDailyReward: () => ActionResult & {
     reward?: { cash: number; coins: number; xp: number; streak: number };
   };
@@ -373,6 +375,27 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         lifestyleOwned: {
           ...s.state.lifestyleOwned,
           [itemId]: (s.state.lifestyleOwned[itemId] ?? 0) + 1,
+        },
+      },
+    }));
+    return { ok: true };
+  },
+
+  doActivity: (activityId) => {
+    const { state } = get();
+    const activity = getActivity(activityId);
+    if (!activity) return { ok: false, error: 'Unknown activity.' };
+    if (state.cash < activity.cost) return { ok: false, error: 'Not enough cash.' };
+
+    set((s) => ({
+      state: {
+        ...s.state,
+        cash: s.state.cash - activity.cost,
+        education: Math.min(100, s.state.education + activity.educationBoost),
+        totalEducationSpend: s.state.totalEducationSpend + activity.cost,
+        activitiesCompleted: {
+          ...s.state.activitiesCompleted,
+          [activityId]: (s.state.activitiesCompleted[activityId] ?? 0) + 1,
         },
       },
     }));

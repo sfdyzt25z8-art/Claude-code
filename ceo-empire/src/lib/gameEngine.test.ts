@@ -19,6 +19,8 @@ import {
   prestigeMultiplier,
   prestigeReset,
   hydrateState,
+  educationMultiplier,
+  EDUCATION_BONUS_PER_10_POINTS,
 } from './gameEngine';
 
 function freshBusiness(overrides: Partial<OwnedBusiness> = {}): OwnedBusiness {
@@ -343,5 +345,40 @@ describe('hydrateState', () => {
     expect(hydrated.totalLifestyleSpend).toBe(0);
     expect(hydrated.lifestyleOwned).toEqual({});
     expect(hydrated.employees[0].skillLevel).toBe(0);
+  });
+
+  it('defaults education fields for an older save', () => {
+    const state = createInitialState();
+    const legacy = { ...state } as Omit<typeof state, 'education' | 'totalEducationSpend' | 'activitiesCompleted'> & {
+      education?: unknown;
+      totalEducationSpend?: unknown;
+      activitiesCompleted?: unknown;
+    };
+    delete legacy.education;
+    delete legacy.totalEducationSpend;
+    delete legacy.activitiesCompleted;
+    const hydrated = hydrateState(legacy as typeof state);
+    expect(hydrated.education).toBe(0);
+    expect(hydrated.totalEducationSpend).toBe(0);
+    expect(hydrated.activitiesCompleted).toEqual({});
+  });
+});
+
+describe('educationMultiplier', () => {
+  it('grants no bonus at zero education', () => {
+    const state = createInitialState();
+    expect(educationMultiplier(state)).toBe(1);
+  });
+
+  it('grants a bonus per 10 points of education, rounding down', () => {
+    const state = createInitialState();
+    state.education = 25; // 2 full tens
+    expect(educationMultiplier(state)).toBeCloseTo(1 + 2 * EDUCATION_BONUS_PER_10_POINTS);
+  });
+
+  it('caps out at 100 education', () => {
+    const state = createInitialState();
+    state.education = 100;
+    expect(educationMultiplier(state)).toBeCloseTo(1 + 10 * EDUCATION_BONUS_PER_10_POINTS);
   });
 });

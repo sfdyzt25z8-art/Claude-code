@@ -29,6 +29,15 @@ export const LIFESTYLE_ITEMS: LifestyleItem[] = [
     cost: 25000,
     reputationBoost: 4,
   },
+  {
+    id: 'silk_scarves',
+    name: 'Silk Scarf Collection',
+    category: 'clothing',
+    icon: 'Shirt',
+    description: 'Hand-painted silk, one for every occasion.',
+    cost: 500,
+    reputationBoost: 1,
+  },
   // Accessories & jewelry
   {
     id: 'gold_watch',
@@ -49,6 +58,24 @@ export const LIFESTYLE_ITEMS: LifestyleItem[] = [
     reputationBoost: 2,
   },
   {
+    id: 'designer_sunglasses',
+    name: 'Designer Sunglasses',
+    category: 'accessories',
+    icon: 'Glasses',
+    description: 'Polarized, limited-edition, unmistakably you.',
+    cost: 1200,
+    reputationBoost: 1,
+  },
+  {
+    id: 'platinum_watch',
+    name: 'Platinum Watch',
+    category: 'accessories',
+    icon: 'Watch',
+    description: 'Rarer than gold, and it shows.',
+    cost: 12000,
+    reputationBoost: 3,
+  },
+  {
     id: 'diamond_necklace',
     name: 'Diamond Necklace',
     category: 'jewelry',
@@ -66,6 +93,15 @@ export const LIFESTYLE_ITEMS: LifestyleItem[] = [
     cost: 15000,
     reputationBoost: 3,
   },
+  {
+    id: 'sapphire_ring',
+    name: 'Sapphire Ring',
+    category: 'jewelry',
+    icon: 'Gem',
+    description: 'A deep-blue stone set in white gold.',
+    cost: 28000,
+    reputationBoost: 4,
+  },
   // Land
   {
     id: 'countryside_estate',
@@ -75,6 +111,24 @@ export const LIFESTYLE_ITEMS: LifestyleItem[] = [
     description: 'Acres of rolling land and a private drive.',
     cost: 400000,
     reputationBoost: 8,
+  },
+  {
+    id: 'ski_chalet',
+    name: 'Ski Chalet',
+    category: 'land',
+    icon: 'Mountain',
+    description: 'Mountainside views and a fireplace that never goes out.',
+    cost: 650000,
+    reputationBoost: 9,
+  },
+  {
+    id: 'beachfront_villa',
+    name: 'Beachfront Villa',
+    category: 'land',
+    icon: 'Palmtree',
+    description: 'Sand between your toes, ocean out every window.',
+    cost: 1200000,
+    reputationBoost: 12,
   },
   {
     id: 'private_island_plot',
@@ -96,6 +150,15 @@ export const LIFESTYLE_ITEMS: LifestyleItem[] = [
     reputationBoost: 6,
   },
   {
+    id: 'yacht',
+    name: 'Yacht',
+    category: 'vehicles',
+    icon: 'Sailboat',
+    description: 'A floating second office, minus the meetings.',
+    cost: 3500000,
+    reputationBoost: 18,
+  },
+  {
     id: 'private_jet',
     name: 'Private Jet',
     category: 'vehicles',
@@ -103,6 +166,25 @@ export const LIFESTYLE_ITEMS: LifestyleItem[] = [
     description: 'Skip the lines. Skip everything, really.',
     cost: 8000000,
     reputationBoost: 20,
+  },
+  // Collectibles
+  {
+    id: 'wine_cellar',
+    name: 'Wine Cellar Collection',
+    category: 'collectibles',
+    icon: 'Wine',
+    description: 'Rare vintages, cellared at exactly the right temperature.',
+    cost: 40000,
+    reputationBoost: 4,
+  },
+  {
+    id: 'art_collection',
+    name: 'Vintage Art Collection',
+    category: 'collectibles',
+    icon: 'Palette',
+    description: 'Museum-worthy pieces for the private gallery.',
+    cost: 95000,
+    reputationBoost: 5,
   },
 ];
 
@@ -112,6 +194,7 @@ export const LIFESTYLE_CATEGORY_LABELS: Record<LifestyleCategory, string> = {
   jewelry: 'Jewelry',
   land: 'Land',
   vehicles: 'Vehicles',
+  collectibles: 'Collectibles',
 };
 
 export function getLifestyleItem(id: string): LifestyleItem | undefined {

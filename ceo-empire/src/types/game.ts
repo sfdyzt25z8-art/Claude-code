@@ -6,7 +6,8 @@ export type BusinessCategory =
   | 'retail'
   | 'tech'
   | 'transport'
-  | 'manufacturing';
+  | 'manufacturing'
+  | 'finance';
 
 export type UpgradeType =
   | 'equipment'
@@ -51,7 +52,12 @@ export type EmployeeType =
   | 'manager'
   | 'accountant'
   | 'developer'
-  | 'marketing_specialist';
+  | 'marketing_specialist'
+  | 'sales_rep'
+  | 'hr_specialist'
+  | 'operations_manager'
+  | 'data_analyst'
+  | 'executive_coo';
 
 export interface EmployeeTemplate {
   type: EmployeeType;
@@ -162,7 +168,7 @@ export interface PrestigeState {
   count: number;
 }
 
-export type LifestyleCategory = 'clothing' | 'accessories' | 'jewelry' | 'land' | 'vehicles';
+export type LifestyleCategory = 'clothing' | 'accessories' | 'jewelry' | 'land' | 'vehicles' | 'collectibles';
 
 export interface LifestyleItem {
   id: string;
@@ -173,6 +179,19 @@ export interface LifestyleItem {
   cost: number;
   /** Reputation gained (0-100 scale, capped) each time this item is bought. */
   reputationBoost: number;
+}
+
+export type ActivityCategory = 'reading' | 'classes' | 'college';
+
+export interface ActivityItem {
+  id: string;
+  name: string;
+  category: ActivityCategory;
+  icon: string;
+  description: string;
+  cost: number;
+  /** Education gained (0-100 scale, capped) each time this activity is done. */
+  educationBoost: number;
 }
 
 export interface GameState {
@@ -203,6 +222,12 @@ export interface GameState {
   totalLifestyleSpend: number;
   /** Lifestyle item id -> number of times purchased. */
   lifestyleOwned: Record<string, number>;
+  /** Education level (0-100, capped) — grants a small global income multiplier. */
+  education: number;
+  /** Cumulative cash spent on learning activities. */
+  totalEducationSpend: number;
+  /** Activity id -> number of times completed. */
+  activitiesCompleted: Record<string, number>;
 }
 
 export interface PlayerProfile {

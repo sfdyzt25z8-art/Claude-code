@@ -20,15 +20,21 @@ describe('getRiskLevel', () => {
     }
   });
 
-  it('flags MoonPup as the one Very High risk asset, keeping the rest of crypto/startups at High', () => {
+  it('flags MoonPup as the one Very High risk asset, keeping most other crypto/startups at High', () => {
     const moonpup = INVESTMENT_ASSETS.find((a) => a.id === 'moonpup')!;
     expect(getRiskLevel(moonpup.volatility)).toBe('Very High');
 
+    // StableStack is a deliberate "stablecoin" outlier — genuinely Low risk despite being crypto.
     const otherCryptoAndStartups = INVESTMENT_ASSETS.filter(
-      (a) => (a.category === 'crypto' || a.category === 'startup') && a.id !== 'moonpup',
+      (a) => (a.category === 'crypto' || a.category === 'startup') && a.id !== 'moonpup' && a.id !== 'stablestack',
     );
     for (const asset of otherCryptoAndStartups) {
       expect(getRiskLevel(asset.volatility)).toBe('High');
     }
+  });
+
+  it('flags StableStack as a deliberately Low-risk crypto outlier', () => {
+    const stablestack = INVESTMENT_ASSETS.find((a) => a.id === 'stablestack')!;
+    expect(getRiskLevel(stablestack.volatility)).toBe('Low');
   });
 });

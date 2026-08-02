@@ -145,3 +145,55 @@ describe('gameStore.buyLifestyleItem', () => {
     expect(result.ok).toBe(false);
   });
 });
+
+describe('gameStore.doActivity', () => {
+  beforeEach(() => {
+    useGameStore.setState({
+      state: createInitialState(),
+      isLoaded: true,
+      activeUid: 'test-uid',
+      notifications: [],
+      offlineSummary: null,
+    });
+  });
+
+  it('spends cash, raises education, and tracks the completion', () => {
+    const result = useGameStore.getState().doActivity('business_book');
+
+    expect(result.ok).toBe(true);
+    const state = useGameStore.getState().state;
+    expect(state.cash).toBe(10_000 - 10);
+    expect(state.education).toBe(1);
+    expect(state.totalEducationSpend).toBe(10);
+    expect(state.activitiesCompleted.business_book).toBe(1);
+  });
+
+  it('accumulates completions and spend across repeats', () => {
+    useGameStore.getState().doActivity('business_book');
+    useGameStore.getState().doActivity('business_book');
+
+    const state = useGameStore.getState().state;
+    expect(state.activitiesCompleted.business_book).toBe(2);
+    expect(state.totalEducationSpend).toBe(20);
+    expect(state.education).toBe(2);
+  });
+
+  it('caps education at 100', () => {
+    useGameStore.setState((s) => ({ state: { ...s.state, cash: 1_000_000, education: 99 } }));
+    useGameStore.getState().doActivity('executive_mba'); // educationBoost 20
+    expect(useGameStore.getState().state.education).toBe(100);
+  });
+
+  it('fails without touching state when cash is insufficient', () => {
+    useGameStore.setState((s) => ({ state: { ...s.state, cash: 5 } }));
+    const result = useGameStore.getState().doActivity('business_book');
+    expect(result.ok).toBe(false);
+    expect(useGameStore.getState().state.cash).toBe(5);
+    expect(useGameStore.getState().state.education).toBe(0);
+  });
+
+  it('fails for an unknown activity id', () => {
+    const result = useGameStore.getState().doActivity('nope');
+    expect(result.ok).toBe(false);
+  });
+});

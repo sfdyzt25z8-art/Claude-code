@@ -14,6 +14,7 @@ const CATEGORIES: { id: BusinessCategory | 'all'; label: string }[] = [
   { id: 'tech', label: 'Tech' },
   { id: 'transport', label: 'Transport' },
   { id: 'manufacturing', label: 'Manufacturing' },
+  { id: 'finance', label: 'Finance' },
 ];
 
 export default function BusinessesPage() {

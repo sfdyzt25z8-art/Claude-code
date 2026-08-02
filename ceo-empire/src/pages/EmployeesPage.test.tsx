@@ -36,6 +36,14 @@ describe('EmployeesPage', () => {
     expect(screen.getByText('Your Team (0)')).toBeInTheDocument();
   });
 
+  it('lists every employee role, including the newer additions', () => {
+    renderPage();
+    expect(screen.getByText('Cashier')).toBeInTheDocument();
+    expect(screen.getByText('Sales Rep')).toBeInTheDocument();
+    expect(screen.getByText('Data Analyst')).toBeInTheDocument();
+    expect(screen.getByText('Executive COO')).toBeInTheDocument();
+  });
+
   it('makes every role hireable from day one, gated only by cash, not level', () => {
     renderPage();
     // No role should show a level lock — Manager ($1,500) is affordable out of the starting $10,000.

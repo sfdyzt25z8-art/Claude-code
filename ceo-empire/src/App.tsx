@@ -13,6 +13,7 @@ const BusinessesPage = lazy(() => import('@/pages/BusinessesPage'));
 const EmployeesPage = lazy(() => import('@/pages/EmployeesPage'));
 const InvestmentsPage = lazy(() => import('@/pages/InvestmentsPage'));
 const LifestylePage = lazy(() => import('@/pages/LifestylePage'));
+const ActivitiesPage = lazy(() => import('@/pages/ActivitiesPage'));
 const AchievementsPage = lazy(() => import('@/pages/AchievementsPage'));
 const LeaderboardPage = lazy(() => import('@/pages/LeaderboardPage'));
 const StatisticsPage = lazy(() => import('@/pages/StatisticsPage'));
@@ -48,6 +49,7 @@ function App() {
               <Route path="/employees" element={<EmployeesPage />} />
               <Route path="/investments" element={<InvestmentsPage />} />
               <Route path="/lifestyle" element={<LifestylePage />} />
+              <Route path="/learning" element={<ActivitiesPage />} />
               <Route path="/achievements" element={<AchievementsPage />} />
               <Route path="/leaderboard" element={<LeaderboardPage />} />
               <Route path="/statistics" element={<StatisticsPage />} />

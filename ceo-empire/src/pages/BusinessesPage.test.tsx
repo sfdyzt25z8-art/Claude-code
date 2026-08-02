@@ -26,9 +26,12 @@ describe('BusinessesPage', () => {
     });
   });
 
-  it('lists every business template', () => {
+  it('lists every business template, including the newer additions', () => {
     renderPage();
     expect(screen.getByText('Lemonade Stand')).toBeInTheDocument();
+    expect(screen.getByText('Food Truck')).toBeInTheDocument();
+    expect(screen.getByText('Space Company')).toBeInTheDocument();
+    expect(screen.getByText('Bank')).toBeInTheDocument();
     expect(screen.getByText('Car Company')).toBeInTheDocument();
   });
 
@@ -37,6 +40,15 @@ describe('BusinessesPage', () => {
     renderPage();
     await user.click(screen.getByRole('button', { name: 'Tech' }));
     expect(screen.getByText('Tech Startup')).toBeInTheDocument();
+    expect(screen.queryByText('Lemonade Stand')).not.toBeInTheDocument();
+  });
+
+  it('filters to the new Finance category', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole('button', { name: 'Finance' }));
+    expect(screen.getByText('Bank')).toBeInTheDocument();
+    expect(screen.getByText('Real Estate Firm')).toBeInTheDocument();
     expect(screen.queryByText('Lemonade Stand')).not.toBeInTheDocument();
   });
 
