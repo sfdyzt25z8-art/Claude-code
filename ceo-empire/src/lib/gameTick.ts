@@ -1,5 +1,5 @@
 import type { ActiveEvent, GameState, NetWorthPoint } from '@/types/game';
-import { GAME_DAY_SECONDS, computeEmpireTotals, computeNetWorth } from '@/lib/gameEngine';
+import { GAME_DAY_SECONDS, GAME_HOUR_SECONDS, computeEmpireTotals, computeNetWorth } from '@/lib/gameEngine';
 import { simulateMarketTick } from '@/lib/market';
 import { pruneExpiredEvents, rollDailyEvent } from '@/lib/eventsEngine';
 import { checkNewAchievements } from '@/lib/achievementsEngine';
@@ -31,15 +31,17 @@ export function advanceTime(prev: GameState, elapsedSeconds: number, now: number
 
   const netWorthBefore = computeNetWorth(prev);
   const totals = computeEmpireTotals(prev);
-  const dayFraction = elapsedSeconds / GAME_DAY_SECONDS;
-  const cashGain = totals.dailyProfit * dayFraction;
+  // Business income/expense are hourly figures — paced off the (much shorter) in-game
+  // hour rather than the in-game day used for calendar/event pacing below.
+  const hourFraction = elapsedSeconds / GAME_HOUR_SECONDS;
+  const cashGain = totals.hourlyProfit * hourFraction;
   const market = simulateMarketTick(prev, elapsedSeconds);
 
   let state: GameState = {
     ...prev,
     cash: prev.cash + cashGain,
-    totalIncomeEarned: prev.totalIncomeEarned + Math.max(0, totals.dailyIncome * dayFraction),
-    totalExpensesPaid: prev.totalExpensesPaid + Math.max(0, totals.dailyExpense * dayFraction),
+    totalIncomeEarned: prev.totalIncomeEarned + Math.max(0, totals.hourlyIncome * hourFraction),
+    totalExpensesPaid: prev.totalExpensesPaid + Math.max(0, totals.hourlyExpense * hourFraction),
     marketPrices: market.marketPrices,
     priceHistory: market.priceHistory,
     lastTickAt: now,

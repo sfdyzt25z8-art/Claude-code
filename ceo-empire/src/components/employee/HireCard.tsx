@@ -19,7 +19,7 @@ export function HireCard({
   const [businessId, setBusinessId] = useState<string>('');
   const countOfType = state.employees.filter((e) => e.type === template.type).length;
   const cost = Math.round(template.baseHireCost * (1 + 0.12 * countOfType));
-  const salary = Math.round(template.baseDailySalary * (1 + 0.08 * countOfType));
+  const salary = Math.round(template.baseHourlySalary * (1 + 0.08 * countOfType));
   const affordable = state.cash >= cost;
 
   const openBusinesses = state.businesses.filter(
@@ -34,7 +34,7 @@ export function HireCard({
         </div>
         <div>
           <h3 className="text-sm font-semibold text-white">{template.name}</h3>
-          <p className="text-[11px] text-white/30">{formatMoney(salary)}/day salary</p>
+          <p className="text-[11px] text-white/30">{formatMoney(salary)}/hr salary</p>
         </div>
       </div>
       <p className="text-xs leading-relaxed text-white/40">{template.description}</p>
