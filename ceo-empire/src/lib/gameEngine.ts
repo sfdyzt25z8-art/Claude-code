@@ -69,10 +69,36 @@ export function createInitialState(): GameState {
   };
 }
 
+/** Last finite `cash` recorded in net worth history, for recovering from a NaN-poisoned save. */
+function lastFiniteCash(history: GameState['netWorthHistory']): number | null {
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (Number.isFinite(history[i].cash)) return history[i].cash;
+  }
+  return null;
+}
+
 /** Fills in defaults for any fields missing from an older/loaded save (schema drift safety net). */
 export function hydrateState(raw: GameState): GameState {
+  const employees = raw.employees.map((e) => {
+    // Older saves persisted this field as `dailySalary` before the hourly-pacing rename.
+    const legacy = e as Employee & { dailySalary?: number };
+    return {
+      ...e,
+      skillLevel: e.skillLevel ?? 0,
+      hourlySalary: e.hourlySalary ?? legacy.dailySalary ?? 0,
+    };
+  });
+
+  // A save made under the `dailySalary` bug above got `emp.hourlySalary` treated as
+  // undefined, which poisoned expense/profit/cash with NaN on every tick since. Recover
+  // from the last finite point in net worth history rather than losing all progress.
+  const cash = Number.isFinite(raw.cash) ? raw.cash : (lastFiniteCash(raw.netWorthHistory) ?? STARTING_CASH);
+  const totalExpensesPaid = Number.isFinite(raw.totalExpensesPaid) ? raw.totalExpensesPaid : 0;
+
   return {
     ...raw,
+    cash,
+    totalExpensesPaid,
     coins: raw.coins ?? 0,
     prestige: raw.prestige ?? { count: 0 },
     settings: { ...DEFAULT_SETTINGS, ...raw.settings },
@@ -81,7 +107,7 @@ export function hydrateState(raw: GameState): GameState {
     education: raw.education ?? 0,
     totalEducationSpend: raw.totalEducationSpend ?? 0,
     activitiesCompleted: raw.activitiesCompleted ?? {},
-    employees: raw.employees.map((e) => ({ ...e, skillLevel: e.skillLevel ?? 0 })),
+    employees,
   };
 }
 
