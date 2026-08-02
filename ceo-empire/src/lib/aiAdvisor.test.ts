@@ -29,17 +29,17 @@ describe('generateAdvice', () => {
     const advice = generateAdvice(state);
     const rec = advice.find((a) => a.id === 'recommend_business');
     expect(rec).toBeDefined();
-    // Cheapest unowned business is the Newsstand ($350).
-    expect(rec!.title).toMatch(/Newsstand/);
+    // Cheapest unowned business is the Food Cart ($250).
+    expect(rec!.title).toMatch(/Food Cart/);
   });
 
   it('phrases the recommendation as affordable when the player has enough cash', () => {
     const state = createInitialState();
     state.businesses = [freshBusiness()];
-    state.cash = 100_000; // comfortably more than the $350 newsstand
+    state.cash = 100_000; // comfortably more than the $250 food cart
     const advice = generateAdvice(state);
     const rec = advice.find((a) => a.id === 'recommend_business')!;
-    expect(rec.title).toBe('Buy a Newsstand');
+    expect(rec.title).toBe('Buy a Food Cart');
     expect(rec.detail).toMatch(/You can afford it now/);
   });
 
@@ -49,7 +49,7 @@ describe('generateAdvice', () => {
     state.cash = 0;
     const advice = generateAdvice(state);
     const rec = advice.find((a) => a.id === 'recommend_business')!;
-    expect(rec.title).toBe('Save up for a Newsstand');
+    expect(rec.title).toBe('Save up for a Food Cart');
     expect(rec.detail).toMatch(/you need/);
   });
 

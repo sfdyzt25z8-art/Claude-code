@@ -4,7 +4,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { useGameStore } from '@/store/gameStore';
-import { createInitialState } from '@/lib/gameEngine';
+import { createInitialState, STARTING_CASH } from '@/lib/gameEngine';
 import ActivitiesPage from './ActivitiesPage';
 
 function renderPage() {
@@ -43,6 +43,8 @@ describe('ActivitiesPage', () => {
     expect(screen.getByText('PhD Program')).toBeInTheDocument();
     expect(screen.getByText('Go Fishing')).toBeInTheDocument();
     expect(screen.getByText('Attend a Music Festival')).toBeInTheDocument();
+    expect(screen.getByText('Read Industry Case Studies')).toBeInTheDocument();
+    expect(screen.getByText('Attend a Networking Mixer')).toBeInTheDocument();
   });
 
   it('filters the list by category', async () => {
@@ -53,10 +55,11 @@ describe('ActivitiesPage', () => {
     expect(screen.queryByText('Read a Business Book')).not.toBeInTheDocument();
   });
 
-  it('starts at 0 education with no income bonus', () => {
+  it('starts at 0 education with the full uneducated income penalty applied', () => {
     renderPage();
     expect(screen.getByText('0/100')).toBeInTheDocument();
-    expect(screen.getByText('+0%')).toBeInTheDocument();
+    expect(screen.getByText('-10%')).toBeInTheDocument();
+    expect(screen.getByText(/uneducated CEO is costing you/)).toBeInTheDocument();
   });
 
   it('does a cheap activity, spending cash and raising education, the income bonus, and XP', async () => {
@@ -65,7 +68,7 @@ describe('ActivitiesPage', () => {
 
     await user.click(within(activityCard('Read a Business Book')).getByRole('button', { name: /Do it for \$10/ }));
 
-    expect(useGameStore.getState().state.cash).toBe(10_000 - 10);
+    expect(useGameStore.getState().state.cash).toBe(STARTING_CASH - 10);
     expect(useGameStore.getState().state.education).toBe(1);
     expect(useGameStore.getState().state.totalEducationSpend).toBe(10);
     expect(useGameStore.getState().state.activitiesCompleted.business_book).toBe(1);
@@ -91,11 +94,12 @@ describe('ActivitiesPage', () => {
     expect(useGameStore.getState().state.education).toBe(0);
   });
 
-  it('shows the growing income bonus once enough education is banked', () => {
+  it('shows the growing income bonus and clears the penalty warning once enough education is banked', () => {
     useGameStore.setState((s) => ({ state: { ...s.state, education: 20 } }));
     renderPage();
     expect(screen.getByText('20/100')).toBeInTheDocument();
     expect(screen.getByText('+3%')).toBeInTheDocument();
+    expect(screen.queryByText(/uneducated CEO is costing you/)).not.toBeInTheDocument();
   });
 
   it('filters to the Recreation category', async () => {
@@ -114,7 +118,7 @@ describe('ActivitiesPage', () => {
     await user.click(within(activityCard('Go for a Run')).getByRole('button', { name: 'Do it for 15 XP' }));
 
     expect(useGameStore.getState().state.xp).toBe(100 - 15);
-    expect(useGameStore.getState().state.cash).toBe(10_000);
+    expect(useGameStore.getState().state.cash).toBe(STARTING_CASH);
     expect(useGameStore.getState().state.education).toBe(1);
     expect(useGameStore.getState().state.activitiesCompleted.go_for_a_run).toBe(1);
     expect(screen.getByText('Done 1x')).toBeInTheDocument();

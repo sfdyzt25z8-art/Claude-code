@@ -4,7 +4,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { useGameStore } from '@/store/gameStore';
-import { createInitialState } from '@/lib/gameEngine';
+import { createInitialState, STARTING_CASH } from '@/lib/gameEngine';
 import LifestylePage from './LifestylePage';
 
 function renderPage() {
@@ -40,6 +40,8 @@ describe('LifestylePage', () => {
     expect(screen.getByText('Vintage Art Collection')).toBeInTheDocument();
     expect(screen.getByText('Vineyard Estate')).toBeInTheDocument();
     expect(screen.getByText('Antique Watch Collection')).toBeInTheDocument();
+    expect(screen.getByText('Velvet Blazer')).toBeInTheDocument();
+    expect(screen.getByText('Desert Ranch')).toBeInTheDocument();
   });
 
   it('filters to the new Collectibles category', async () => {
@@ -66,7 +68,7 @@ describe('LifestylePage', () => {
 
     await user.click(within(itemCard('Designer Suit')).getByRole('button', { name: /Buy for \$800/ }));
 
-    expect(useGameStore.getState().state.cash).toBe(10_000 - 800);
+    expect(useGameStore.getState().state.cash).toBe(STARTING_CASH - 800);
     expect(useGameStore.getState().state.reputation).toBeGreaterThan(reputationBefore);
     expect(useGameStore.getState().state.totalLifestyleSpend).toBe(800);
     expect(useGameStore.getState().state.lifestyleOwned.designer_suit).toBe(1);

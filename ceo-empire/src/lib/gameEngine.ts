@@ -12,7 +12,7 @@ import { EMPLOYEE_TEMPLATES, EMPLOYEE_SKILL_BONUS_PER_LEVEL } from '@/data/emplo
 import { getEventTemplate } from '@/data/events';
 import { INVESTMENT_ASSETS } from '@/data/investments';
 
-export const STARTING_CASH = 10_000;
+export const STARTING_CASH = 25_000;
 /** How many real-time seconds make up one in-game day. */
 export const GAME_DAY_SECONDS = 180;
 
@@ -117,10 +117,20 @@ export function prestigeMultiplier(state: GameState): number {
 
 /** Fractional income boost per 10 points of Education (capped at 100 education = +15%). */
 export const EDUCATION_BONUS_PER_10_POINTS = 0.015;
+/** Income penalty at zero Education — an uneducated CEO runs a leaner, less competitive operation. */
+export const UNEDUCATED_PENALTY = 0.1;
+/** Education points needed to fully offset the uneducated penalty. */
+export const UNEDUCATED_RELIEF_EDUCATION = 20;
 
-/** Global income multiplier earned from completed learning activities. */
+/**
+ * Global income multiplier from Education. Ignoring Learning entirely costs a real
+ * penalty (mirroring the Marketing/Staff neglect penalty on businesses) that shrinks
+ * linearly as Education rises, then flips into a bonus once education climbs further.
+ */
 export function educationMultiplier(state: GameState): number {
-  return 1 + Math.floor(state.education / 10) * EDUCATION_BONUS_PER_10_POINTS;
+  const penalty = UNEDUCATED_PENALTY * Math.max(0, 1 - state.education / UNEDUCATED_RELIEF_EDUCATION);
+  const bonus = Math.floor(state.education / 10) * EDUCATION_BONUS_PER_10_POINTS;
+  return 1 - penalty + bonus;
 }
 
 /**

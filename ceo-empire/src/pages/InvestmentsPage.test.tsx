@@ -4,7 +4,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { useGameStore } from '@/store/gameStore';
-import { createInitialState } from '@/lib/gameEngine';
+import { createInitialState, STARTING_CASH } from '@/lib/gameEngine';
 import InvestmentsPage from './InvestmentsPage';
 
 function renderPage() {
@@ -68,6 +68,8 @@ describe('InvestmentsPage', () => {
     expect(screen.getByText('SolarGrid Startup')).toBeInTheDocument();
     expect(screen.getByText('Meridian Motors')).toBeInTheDocument();
     expect(screen.getByText('BioForge Labs')).toBeInTheDocument();
+    expect(screen.getByText('Helios Renewables')).toBeInTheDocument();
+    expect(screen.getByText('QuantumLedger')).toBeInTheDocument();
   });
 
   it('filters to the new Commodities category', async () => {
@@ -92,7 +94,7 @@ describe('InvestmentsPage', () => {
     const card = assetCard('Vertex Dynamics');
     await user.click(within(card).getByRole('button', { name: 'Buy' }));
 
-    expect(useGameStore.getState().state.cash).toBe(10_000 - 100);
+    expect(useGameStore.getState().state.cash).toBe(STARTING_CASH - 100);
     const holding = useGameStore.getState().state.investments.find((i) => i.assetId === 'vtx');
     expect(holding).toBeDefined();
     expect(holding!.quantity).toBeCloseTo(100 / 42, 4);
@@ -108,7 +110,7 @@ describe('InvestmentsPage', () => {
     await user.type(input, '250');
     await user.click(within(card).getByRole('button', { name: 'Buy' }));
 
-    expect(useGameStore.getState().state.cash).toBe(10_000 - 250);
+    expect(useGameStore.getState().state.cash).toBe(STARTING_CASH - 250);
     const holding = useGameStore.getState().state.investments.find((i) => i.assetId === 'orb');
     expect(holding!.quantity).toBeCloseTo(250 / 18, 4);
   });
@@ -135,7 +137,7 @@ describe('InvestmentsPage', () => {
     await user.click(within(card).getByRole('button', { name: 'Sell All' }));
 
     expect(useGameStore.getState().state.investments).toHaveLength(0);
-    expect(useGameStore.getState().state.cash).toBe(10_000);
+    expect(useGameStore.getState().state.cash).toBe(STARTING_CASH);
     expect(within(card).queryByText(/You hold/)).not.toBeInTheDocument();
   });
 
@@ -157,7 +159,7 @@ describe('InvestmentsPage', () => {
     const card = assetCard('Lemonade Stand Inc.');
     await user.click(within(card).getByRole('button', { name: 'Buy' }));
 
-    expect(useGameStore.getState().state.cash).toBe(10_000 - 100);
+    expect(useGameStore.getState().state.cash).toBe(STARTING_CASH - 100);
     expect(
       useGameStore.getState().state.investments.find((i) => i.assetId === 'stock_lemonade_stand'),
     ).toBeDefined();

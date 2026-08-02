@@ -4,7 +4,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { useGameStore } from '@/store/gameStore';
-import { createInitialState } from '@/lib/gameEngine';
+import { createInitialState, STARTING_CASH } from '@/lib/gameEngine';
 import BusinessesPage from './BusinessesPage';
 
 function renderPage() {
@@ -35,6 +35,8 @@ describe('BusinessesPage', () => {
     expect(screen.getByText('Car Company')).toBeInTheDocument();
     expect(screen.getByText('Newsstand')).toBeInTheDocument();
     expect(screen.getByText('Private Equity Firm')).toBeInTheDocument();
+    expect(screen.getByText('Food Cart')).toBeInTheDocument();
+    expect(screen.getByText('Global Shipping Line')).toBeInTheDocument();
   });
 
   it('filters the list by category', async () => {
@@ -59,7 +61,7 @@ describe('BusinessesPage', () => {
     renderPage();
     await user.click(screen.getByRole('button', { name: /Buy for \$500/ }));
 
-    expect(useGameStore.getState().state.cash).toBe(10_000 - 500);
+    expect(useGameStore.getState().state.cash).toBe(STARTING_CASH - 500);
     expect(useGameStore.getState().state.businesses).toHaveLength(1);
     // The card should flip from a Buy button to an Owned badge + Manage button.
     expect(await screen.findAllByText('Owned')).not.toHaveLength(0);
