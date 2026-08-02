@@ -106,19 +106,19 @@ export default function DashboardPage() {
         />
         <StatCard
           icon={<ArrowUpRight className="h-5 w-5" />}
-          label="Daily Profit"
+          label="Profit / sec"
           value={formatMoney(totals.dailyProfit, { compact: true })}
           accent={totals.dailyProfit >= 0 ? 'emerald' : 'red'}
         />
         <StatCard
           icon={<ArrowDownRight className="h-5 w-5" />}
-          label="Daily Expenses"
+          label="Expenses / sec"
           value={formatMoney(totals.dailyExpense, { compact: true })}
           accent="red"
         />
         <StatCard
           icon={<Building2 className="h-5 w-5" />}
-          label="Daily Income"
+          label="Income / sec"
           value={formatMoney(totals.dailyIncome, { compact: true })}
           accent="gold"
         />
@@ -165,7 +165,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-medium text-white">{template.name}</p>
-                      <p className="text-[11px] text-white/40">{formatMoney(fin.dailyProfit, { compact: true })}/day</p>
+                      <p className="text-[11px] text-white/40">{formatMoney(fin.dailyProfit, { compact: true })}/sec</p>
                     </div>
                   </div>
                 );

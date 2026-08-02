@@ -10,11 +10,17 @@ export const MAX_OFFLINE_SECONDS = 12 * 60 * 60;
 const MAX_DAYS_ROLLED_AT_ONCE = 8;
 const NET_WORTH_HISTORY_LIMIT = 150;
 /**
- * $ of net worth growth needed to earn 1 XP from passive play. Business income reverted
- * from hourly back to daily pacing (24x slower net worth growth per real second), so this
- * is scaled down by the same factor to keep the real-time XP earn rate unchanged.
+ * Real seconds between full business income/expense payouts. Business templates still
+ * carry their numbers under "daily*" names, but that figure now pays out in full every
+ * this-many real seconds instead of every GAME_DAY_SECONDS (180) — a 180x acceleration.
  */
-export const XP_PER_NET_WORTH_GROWTH = 20 / 24;
+export const INCOME_PAYOUT_SECONDS = 1;
+/**
+ * $ of net worth growth needed to earn 1 XP from passive play. Income payout just sped
+ * up 180x (from once per GAME_DAY_SECONDS to once per INCOME_PAYOUT_SECONDS), so this is
+ * scaled up by the same factor to keep the real-time XP earn rate unchanged.
+ */
+export const XP_PER_NET_WORTH_GROWTH = (20 / 24) * (GAME_DAY_SECONDS / INCOME_PAYOUT_SECONDS);
 
 export interface AdvanceResult {
   state: GameState;
@@ -36,15 +42,17 @@ export function advanceTime(prev: GameState, elapsedSeconds: number, now: number
 
   const netWorthBefore = computeNetWorth(prev);
   const totals = computeEmpireTotals(prev);
-  const dayFraction = elapsedSeconds / GAME_DAY_SECONDS;
-  const cashGain = totals.dailyProfit * dayFraction;
+  // Business income/expense are keyed to INCOME_PAYOUT_SECONDS, not the (much longer)
+  // GAME_DAY_SECONDS used for calendar/event pacing below.
+  const payoutFraction = elapsedSeconds / INCOME_PAYOUT_SECONDS;
+  const cashGain = totals.dailyProfit * payoutFraction;
   const market = simulateMarketTick(prev, elapsedSeconds);
 
   let state: GameState = {
     ...prev,
     cash: prev.cash + cashGain,
-    totalIncomeEarned: prev.totalIncomeEarned + Math.max(0, totals.dailyIncome * dayFraction),
-    totalExpensesPaid: prev.totalExpensesPaid + Math.max(0, totals.dailyExpense * dayFraction),
+    totalIncomeEarned: prev.totalIncomeEarned + Math.max(0, totals.dailyIncome * payoutFraction),
+    totalExpensesPaid: prev.totalExpensesPaid + Math.max(0, totals.dailyExpense * payoutFraction),
     marketPrices: market.marketPrices,
     priceHistory: market.priceHistory,
     lastTickAt: now,

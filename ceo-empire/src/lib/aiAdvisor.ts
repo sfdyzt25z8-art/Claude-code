@@ -41,7 +41,7 @@ export function generateAdvice(state: GameState): AdviceItem[] {
           ? `Buy a ${nextAffordable.name}`
           : `Save up for a ${nextAffordable.name}`,
         detail: canAfford
-          ? `You can afford it now for ${formatMoney(nextAffordable.baseCost)}. It should bring in roughly ${formatMoney(nextAffordable.baseDailyIncome - nextAffordable.baseDailyExpense)}/day in profit.`
+          ? `You can afford it now for ${formatMoney(nextAffordable.baseCost)}. It should bring in roughly ${formatMoney(nextAffordable.baseDailyIncome - nextAffordable.baseDailyExpense)}/sec in profit.`
           : `It costs ${formatMoney(nextAffordable.baseCost)} — you need ${formatMoney(nextAffordable.baseCost - state.cash)} more. Keep growing your current businesses.`,
         tone: 'opportunity',
       });
@@ -94,7 +94,7 @@ export function generateAdvice(state: GameState): AdviceItem[] {
       id: 'neglect_penalty',
       icon: 'Megaphone',
       title: `Your ${worstNeglect.businessName} is losing customers to competitors`,
-      detail: `No investment in Marketing or Staff Training is costing you ${formatMoney(worstNeglect.penalty, { compact: true })}/day. Put a level or two into either upgrade to win that back.`,
+      detail: `No investment in Marketing or Staff Training is costing you ${formatMoney(worstNeglect.penalty, { compact: true })}/sec. Put a level or two into either upgrade to win that back.`,
       tone: 'warning',
     });
   }
@@ -132,8 +132,8 @@ export function generateAdvice(state: GameState): AdviceItem[] {
     items.push({
       id: 'negative_profit',
       icon: 'AlertTriangle',
-      title: "You're losing money every day",
-      detail: `Expenses (${formatMoney(totals.dailyExpense, { compact: true })}/day) exceed income (${formatMoney(totals.dailyIncome, { compact: true })}/day). Consider firing underused employees or upgrading Technology to cut costs.`,
+      title: "You're losing money every second",
+      detail: `Expenses (${formatMoney(totals.dailyExpense, { compact: true })}/sec) exceed income (${formatMoney(totals.dailyIncome, { compact: true })}/sec). Consider firing underused employees or upgrading Technology to cut costs.`,
       tone: 'warning',
     });
   }
@@ -142,8 +142,8 @@ export function generateAdvice(state: GameState): AdviceItem[] {
   items.push({
     id: 'explain_profit',
     icon: 'Calculator',
-    title: 'Your daily profit, explained',
-    detail: `Income ${formatMoney(totals.dailyIncome, { compact: true })} − Expenses ${formatMoney(totals.dailyExpense, { compact: true })} = Profit ${formatMoney(totals.dailyProfit, { compact: true })}/day. Net worth: ${formatMoney(netWorth, { compact: true })}.`,
+    title: 'Your profit per second, explained',
+    detail: `Income ${formatMoney(totals.dailyIncome, { compact: true })} − Expenses ${formatMoney(totals.dailyExpense, { compact: true })} = Profit ${formatMoney(totals.dailyProfit, { compact: true })}/sec. Net worth: ${formatMoney(netWorth, { compact: true })}.`,
     tone: 'summary',
   });
 
@@ -156,5 +156,5 @@ export function businessProfitExplainer(state: GameState, businessId: string): s
   const template = getBusinessTemplate(business.templateId);
   if (!template) return null;
   const fin = businessFinancials(business, state.employees, state.activeEvents);
-  return `${template.name} earns ${formatMoney(fin.dailyIncome, { compact: true })}/day and costs ${formatMoney(fin.dailyExpense, { compact: true })}/day to run, for a profit of ${formatMoney(fin.dailyProfit, { compact: true })}/day.`;
+  return `${template.name} earns ${formatMoney(fin.dailyIncome, { compact: true })}/sec and costs ${formatMoney(fin.dailyExpense, { compact: true })}/sec to run, for a profit of ${formatMoney(fin.dailyProfit, { compact: true })}/sec.`;
 }

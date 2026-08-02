@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createInitialState, GAME_DAY_SECONDS, NEGLECT_RATE, educationMultiplier } from './gameEngine';
-import { advanceTime } from './gameTick';
+import { advanceTime, INCOME_PAYOUT_SECONDS } from './gameTick';
 import { xpForNextLevel } from '@/data/levels';
 import { INVESTMENT_ASSETS } from '@/data/investments';
 import type { OwnedBusiness } from '@/types/game';
@@ -23,13 +23,13 @@ describe('advanceTime', () => {
     expect(result.daysPassed).toBe(0);
   });
 
-  it('accrues cash proportional to daily profit and elapsed time', () => {
+  it('pays out the full "daily" profit figure every INCOME_PAYOUT_SECONDS, not once per game day', () => {
     const state = createInitialState();
     state.businesses = [lemonadeStand()];
     // lemonade stand: $150 income (dented by the uneducated penalty at 0 education) -
-    // $40 expense - $37.50 neglect penalty (no marketing/staff) = daily profit
+    // $40 expense - $37.50 neglect penalty (no marketing/staff) = daily-figure profit
     const dailyProfit = 150 * educationMultiplier(state) - (40 + 150 * NEGLECT_RATE);
-    const elapsed = GAME_DAY_SECONDS / 2; // half a day
+    const elapsed = INCOME_PAYOUT_SECONDS / 2; // half a payout period
     const result = advanceTime(state, elapsed, state.lastTickAt + elapsed * 1000);
     expect(result.state.cash).toBeCloseTo(state.cash + dailyProfit / 2, 5);
   });

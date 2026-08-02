@@ -34,7 +34,7 @@ export function HireCard({
         </div>
         <div>
           <h3 className="text-sm font-semibold text-white">{template.name}</h3>
-          <p className="text-[11px] text-white/30">{formatMoney(salary)}/day salary</p>
+          <p className="text-[11px] text-white/30">{formatMoney(salary)}/sec salary</p>
         </div>
       </div>
       <p className="text-xs leading-relaxed text-white/40">{template.description}</p>
