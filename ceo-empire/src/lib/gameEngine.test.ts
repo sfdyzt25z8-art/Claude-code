@@ -362,6 +362,42 @@ describe('hydrateState', () => {
     expect(hydrated.totalEducationSpend).toBe(0);
     expect(hydrated.activitiesCompleted).toEqual({});
   });
+
+  it('migrates a pre-hourly-rename employee`s dailySalary into hourlySalary', () => {
+    const state = createInitialState();
+    const legacyEmployee = { id: 'e1', type: 'cashier', name: 'Old Hire', hiredAt: 0, assignedBusinessId: null, skillLevel: 0, dailySalary: 60 };
+    const legacy = { ...state, employees: [legacyEmployee] } as unknown as typeof state;
+    const hydrated = hydrateState(legacy);
+    expect(hydrated.employees[0].hourlySalary).toBe(60);
+  });
+
+  it('recovers NaN-poisoned cash (from the legacy dailySalary bug) using the last finite net worth history point', () => {
+    const state = createInitialState();
+    const legacy = {
+      ...state,
+      cash: NaN,
+      totalExpensesPaid: NaN,
+      netWorthHistory: [
+        { day: 1, t: 0, netWorth: 10_000, cash: 10_000 },
+        { day: 2, t: 1000, netWorth: 12_500, cash: 12_500 },
+        { day: 3, t: 2000, netWorth: NaN, cash: NaN },
+      ],
+    };
+    const hydrated = hydrateState(legacy);
+    expect(hydrated.cash).toBe(12_500);
+    expect(hydrated.totalExpensesPaid).toBe(0);
+  });
+
+  it('falls back to the starting cash when no finite history point exists to recover from', () => {
+    const state = createInitialState();
+    const legacy = {
+      ...state,
+      cash: NaN,
+      netWorthHistory: [{ day: 1, t: 0, netWorth: NaN, cash: NaN }],
+    };
+    const hydrated = hydrateState(legacy);
+    expect(hydrated.cash).toBe(STARTING_CASH);
+  });
 });
 
 describe('educationMultiplier', () => {

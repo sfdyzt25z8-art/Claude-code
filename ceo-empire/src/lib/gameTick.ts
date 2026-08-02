@@ -2,6 +2,7 @@ import type { ActiveEvent, GameState, NetWorthPoint } from '@/types/game';
 import { GAME_DAY_SECONDS, GAME_HOUR_SECONDS, computeEmpireTotals, computeNetWorth } from '@/lib/gameEngine';
 import { simulateMarketTick } from '@/lib/market';
 import { pruneExpiredEvents, rollDailyEvent } from '@/lib/eventsEngine';
+import { getEventTemplate } from '@/data/events';
 import { checkNewAchievements } from '@/lib/achievementsEngine';
 import { levelProgressFromXp } from '@/data/levels';
 
@@ -57,14 +58,23 @@ export function advanceTime(prev: GameState, elapsedSeconds: number, now: number
     let cursorDay = state.day;
     let activeEvents = state.activeEvents;
     let eventLog = state.eventLog;
+    let cashDelta = 0;
     for (let i = 0; i < daysToRoll; i++) {
       cursorDay += 1;
       const roll = rollDailyEvent({ ...state, activeEvents, eventLog }, cursorDay);
       activeEvents = roll.activeEvents;
       eventLog = roll.eventLog;
-      if (roll.triggered) triggeredEvents.push(roll.triggered);
+      if (roll.triggered) {
+        triggeredEvents.push(roll.triggered);
+        // 'cash' events (e.g. a tax refund) are a one-time hit/bonus rather than an
+        // ongoing income/expense multiplier — apply the effect directly here, since
+        // activeEventMultiplier only ever handles 'all_income'/'all_expenses'.
+        const tpl = getEventTemplate(roll.triggered.templateId);
+        if (tpl?.target === 'cash') cashDelta += state.cash * tpl.value;
+      }
     }
     activeEvents = pruneExpiredEvents(activeEvents, targetDay);
+    state = { ...state, cash: state.cash + cashDelta };
 
     const nwPoint: NetWorthPoint = {
       day: targetDay,

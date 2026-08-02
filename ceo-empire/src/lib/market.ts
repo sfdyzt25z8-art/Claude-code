@@ -6,9 +6,10 @@ const MAX_HISTORY_POINTS = 180;
 
 /** Approximate standard-normal sample via the sum of uniforms (Irwin-Hall). */
 function randNormal(): number {
+  // Var[U(0,1)] = 1/12, so summing 12 of them gives unit variance once centered.
   let sum = 0;
-  for (let i = 0; i < 6; i++) sum += Math.random();
-  return sum - 3;
+  for (let i = 0; i < 12; i++) sum += Math.random();
+  return sum - 6;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInitialState } from './gameEngine';
+import { createInitialState, GAME_DAY_SECONDS } from './gameEngine';
 import { simulateMarketTick } from './market';
 import { INVESTMENT_ASSETS } from '@/data/investments';
 
@@ -42,5 +42,26 @@ describe('simulateMarketTick', () => {
     const snapshotPrice = state.marketPrices.vtx;
     simulateMarketTick(state, 100);
     expect(state.marketPrices.vtx).toBe(snapshotPrice);
+  });
+
+  it('scales one-day price shocks so realized volatility matches the configured asset volatility', () => {
+    // Regression test: randNormal() used to sum 6 uniforms (variance 0.5) instead of 12
+    // (variance 1), so every asset's realized volatility was ~29% lower than configured.
+    const vtx = INVESTMENT_ASSETS.find((a) => a.id === 'vtx')!;
+    const n = 4000;
+    const returns: number[] = [];
+    for (let i = 0; i < n; i++) {
+      const state = createInitialState();
+      state.marketPrices.vtx = vtx.basePrice;
+      const result = simulateMarketTick(state, GAME_DAY_SECONDS); // dayFraction = 1
+      returns.push(result.marketPrices.vtx / vtx.basePrice - 1 - vtx.drift);
+    }
+    const mean = returns.reduce((a, b) => a + b, 0) / n;
+    const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / n;
+    const stdDev = Math.sqrt(variance);
+    // Configured volatility is 0.02; the pre-fix bug would land this around
+    // 0.02 * sqrt(0.5) ≈ 0.0141 instead.
+    expect(stdDev).toBeGreaterThan(vtx.volatility * 0.85);
+    expect(stdDev).toBeLessThan(vtx.volatility * 1.15);
   });
 });
