@@ -65,7 +65,15 @@ export type EmployeeType =
   | 'legal_counsel'
   | 'investment_banker'
   | 'chief_technology_officer'
-  | 'brand_ambassador';
+  | 'brand_ambassador'
+  | 'chief_financial_officer'
+  | 'chief_marketing_officer'
+  | 'chief_information_officer'
+  | 'chief_revenue_officer'
+  | 'chief_human_resources_officer'
+  | 'chief_information_security_officer'
+  | 'chief_data_officer'
+  | 'chief_legal_officer';
 
 export interface EmployeeTemplate {
   type: EmployeeType;

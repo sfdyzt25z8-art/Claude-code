@@ -21,6 +21,8 @@ import {
   hydrateState,
   educationMultiplier,
   EDUCATION_BONUS_PER_10_POINTS,
+  UNEDUCATED_PENALTY,
+  UNEDUCATED_RELIEF_EDUCATION,
 } from './gameEngine';
 
 function freshBusiness(overrides: Partial<OwnedBusiness> = {}): OwnedBusiness {
@@ -176,7 +178,8 @@ describe('computeEmpireTotals', () => {
     ];
     const totals = computeEmpireTotals(state);
     const coffeeShopNeglect = 600 * NEGLECT_RATE;
-    expect(totals.dailyIncome).toBeCloseTo(150 + 600);
+    // Fresh state has 0 education, so the uneducated penalty (educationMultiplier) applies to income.
+    expect(totals.dailyIncome).toBeCloseTo((150 + 600) * educationMultiplier(state));
     expect(totals.dailyExpense).toBeCloseTo(40 + LEMONADE_NEGLECT + 200 + coffeeShopNeglect);
     expect(totals.dailyProfit).toBeCloseTo(totals.dailyIncome - totals.dailyExpense);
   });
@@ -271,7 +274,7 @@ describe('prestige', () => {
     state.businesses = [freshBusiness()];
     state.prestige = { count: 2 };
     const totals = computeEmpireTotals(state);
-    const mult = prestigeMultiplier(state);
+    const mult = prestigeMultiplier(state) * educationMultiplier(state);
     expect(totals.dailyIncome).toBeCloseTo(150 * mult);
     // The per-business breakdown stays at base numbers, unaffected by prestige.
     const fin = businessFinancials(state.businesses[0], []);
@@ -401,14 +404,29 @@ describe('hydrateState', () => {
 });
 
 describe('educationMultiplier', () => {
-  it('grants no bonus at zero education', () => {
+  it('applies the full uneducated penalty at zero education', () => {
     const state = createInitialState();
-    expect(educationMultiplier(state)).toBe(1);
+    expect(educationMultiplier(state)).toBeCloseTo(1 - UNEDUCATED_PENALTY);
+  });
+
+  it('shrinks the penalty linearly as education rises toward the relief threshold', () => {
+    const state = createInitialState();
+    // Below the first bonus tier (10 points) so this isolates the penalty term.
+    state.education = 5;
+    const expectedPenalty = UNEDUCATED_PENALTY * (1 - 5 / UNEDUCATED_RELIEF_EDUCATION);
+    expect(educationMultiplier(state)).toBeCloseTo(1 - expectedPenalty);
+  });
+
+  it('fully offsets the penalty once education reaches the relief threshold (any bonus already earned still applies)', () => {
+    const state = createInitialState();
+    state.education = UNEDUCATED_RELIEF_EDUCATION;
+    const bonusOnly = 1 + Math.floor(state.education / 10) * EDUCATION_BONUS_PER_10_POINTS;
+    expect(educationMultiplier(state)).toBeCloseTo(bonusOnly);
   });
 
   it('grants a bonus per 10 points of education, rounding down', () => {
     const state = createInitialState();
-    state.education = 25; // 2 full tens
+    state.education = 25; // 2 full tens, past the relief threshold
     expect(educationMultiplier(state)).toBeCloseTo(1 + 2 * EDUCATION_BONUS_PER_10_POINTS);
   });
 

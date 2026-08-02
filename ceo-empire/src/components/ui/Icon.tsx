@@ -97,6 +97,7 @@ import {
   Puzzle,
   Flag,
   Music,
+  Ship,
   type LucideProps,
 } from 'lucide-react';
 
@@ -199,6 +200,7 @@ const ICONS: Record<string, React.ComponentType<LucideProps>> = {
   Puzzle,
   Flag,
   Music,
+  Ship,
 };
 
 interface IconProps extends LucideProps {

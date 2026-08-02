@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useGameStore } from './gameStore';
-import { createInitialState, PRESTIGE_MIN_NET_WORTH } from '@/lib/gameEngine';
+import { createInitialState, PRESTIGE_MIN_NET_WORTH, STARTING_CASH } from '@/lib/gameEngine';
 import { xpForNextLevel, levelProgressFromXp } from '@/data/levels';
 import { getActivity, activityXpReward } from '@/data/activities';
 
@@ -27,7 +27,7 @@ describe('gameStore.prestige', () => {
     expect(result.ok).toBe(true);
     const state = useGameStore.getState().state;
     expect(state.prestige.count).toBe(1);
-    expect(state.cash).toBe(10_000);
+    expect(state.cash).toBe(STARTING_CASH);
     expect(state.businesses).toEqual([]);
   });
 
@@ -112,7 +112,7 @@ describe('gameStore.buyLifestyleItem', () => {
 
     expect(result.ok).toBe(true);
     const state = useGameStore.getState().state;
-    expect(state.cash).toBe(10_000 - 800);
+    expect(state.cash).toBe(STARTING_CASH - 800);
     expect(state.reputation).toBeGreaterThan(reputationBefore);
     expect(state.totalLifestyleSpend).toBe(800);
     expect(state.lifestyleOwned.designer_suit).toBe(1);
@@ -164,7 +164,7 @@ describe('gameStore.doActivity', () => {
 
     expect(result.ok).toBe(true);
     const state = useGameStore.getState().state;
-    expect(state.cash).toBe(10_000 - 10);
+    expect(state.cash).toBe(STARTING_CASH - 10);
     expect(state.education).toBe(1);
     expect(state.xp).toBe(activityXpReward(getActivity('business_book')!));
     expect(state.totalEducationSpend).toBe(10);
@@ -207,7 +207,7 @@ describe('gameStore.doActivity', () => {
     expect(result.ok).toBe(true);
     const state = useGameStore.getState().state;
     expect(state.xp).toBe(100 - 15);
-    expect(state.cash).toBe(10_000);
+    expect(state.cash).toBe(STARTING_CASH);
     expect(state.education).toBe(1);
     expect(state.totalEducationSpend).toBe(0);
     expect(state.activitiesCompleted.go_for_a_run).toBe(1);

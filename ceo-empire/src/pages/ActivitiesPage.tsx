@@ -4,7 +4,7 @@ import { ACTIVITY_ITEMS, ACTIVITY_CATEGORY_LABELS } from '@/data/activities';
 import { ActivityItemCard } from '@/components/activity/ActivityItemCard';
 import { Card } from '@/components/ui/Card';
 import { formatMoney, formatNumber, formatPercent } from '@/lib/format';
-import { educationMultiplier } from '@/lib/gameEngine';
+import { educationMultiplier, UNEDUCATED_RELIEF_EDUCATION } from '@/lib/gameEngine';
 import type { ActivityCategory } from '@/types/game';
 import { playSound } from '@/lib/audio';
 import clsx from 'clsx';
@@ -42,7 +42,8 @@ export default function ActivitiesPage() {
       <div>
         <h1 className="text-2xl font-bold text-white sm:text-3xl">Learning</h1>
         <p className="text-sm text-white/40">
-          Read, take classes, go to college, or blow off steam with recreation — cheap self-improvement that adds up to a real income boost.
+          Read, take classes, go to college, or blow off steam with recreation. Ignore Learning entirely and an
+          uneducated CEO runs a leaner, less competitive empire — invest enough to turn that disadvantage into a real income boost.
         </p>
       </div>
 
@@ -52,8 +53,10 @@ export default function ActivitiesPage() {
           <p className="text-2xl font-bold gold-text">{state.education}/100</p>
         </div>
         <div>
-          <p className="text-xs text-white/40">Income Bonus</p>
-          <p className="text-xl font-semibold text-emerald-400">+{formatPercent(bonus)}</p>
+          <p className="text-xs text-white/40">Income Effect</p>
+          <p className={`text-xl font-semibold ${bonus >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            {bonus >= 0 ? '+' : ''}{formatPercent(bonus)}
+          </p>
         </div>
         <div>
           <p className="text-xs text-white/40">Total Spent Learning</p>
@@ -89,6 +92,12 @@ export default function ActivitiesPage() {
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
           {error}
+        </div>
+      )}
+
+      {bonus < -0.001 && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
+          An uneducated CEO is costing you {formatPercent(Math.abs(bonus))} of income empire-wide. Bank {UNEDUCATED_RELIEF_EDUCATION} Education points to fully offset it.
         </div>
       )}
 

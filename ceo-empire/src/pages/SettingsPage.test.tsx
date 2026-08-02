@@ -4,7 +4,7 @@ import { render, screen, waitForElementToBeRemoved } from '@testing-library/reac
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { useGameStore } from '@/store/gameStore';
-import { createInitialState } from '@/lib/gameEngine';
+import { createInitialState, STARTING_CASH } from '@/lib/gameEngine';
 import SettingsPage from './SettingsPage';
 
 const logout = vi.fn().mockResolvedValue(undefined);
@@ -87,7 +87,7 @@ describe('SettingsPage', () => {
     await user.click(screen.getByRole('button', { name: 'Reset Empire' }));
     await user.click(await screen.findByRole('button', { name: 'Reset Everything' }));
 
-    expect(useGameStore.getState().state.cash).toBe(10_000);
+    expect(useGameStore.getState().state.cash).toBe(STARTING_CASH);
     await waitForElementToBeRemoved(() => screen.queryByRole('dialog'));
   });
 

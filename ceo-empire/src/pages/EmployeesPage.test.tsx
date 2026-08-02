@@ -4,7 +4,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { useGameStore } from '@/store/gameStore';
-import { createInitialState } from '@/lib/gameEngine';
+import { createInitialState, STARTING_CASH } from '@/lib/gameEngine';
 import EmployeesPage from './EmployeesPage';
 
 function renderPage() {
@@ -46,9 +46,21 @@ describe('EmployeesPage', () => {
     expect(screen.getByText('Chief Technology Officer')).toBeInTheDocument();
   });
 
+  it('lists the new C-suite executive roles', () => {
+    renderPage();
+    expect(screen.getByText('Chief Financial Officer')).toBeInTheDocument();
+    expect(screen.getByText('Chief Marketing Officer')).toBeInTheDocument();
+    expect(screen.getByText('Chief Information Officer')).toBeInTheDocument();
+    expect(screen.getByText('Chief Revenue Officer')).toBeInTheDocument();
+    expect(screen.getByText('Chief Human Resources Officer')).toBeInTheDocument();
+    expect(screen.getByText('Chief Information Security Officer')).toBeInTheDocument();
+    expect(screen.getByText('Chief Data Officer')).toBeInTheDocument();
+    expect(screen.getByText('Chief Legal Officer')).toBeInTheDocument();
+  });
+
   it('makes every role hireable from day one, gated only by cash, not level', () => {
     renderPage();
-    // No role should show a level lock — Manager ($1,500) is affordable out of the starting $10,000.
+    // No role should show a level lock — Manager ($1,500) is affordable out of the starting cash.
     const managerCard = screen.getByText('Manager').closest<HTMLDivElement>('div.relative')!;
     expect(within(managerCard).queryByText(/Unlocks at level/)).not.toBeInTheDocument();
     expect(within(managerCard).getByRole('button', { name: /Hire for \$1,500/ })).toBeEnabled();
@@ -68,7 +80,7 @@ describe('EmployeesPage', () => {
 
     await user.click(within(cashierCard()).getByRole('button', { name: /Hire for \$300/ }));
 
-    expect(useGameStore.getState().state.cash).toBe(10_000 - 300);
+    expect(useGameStore.getState().state.cash).toBe(STARTING_CASH - 300);
     expect(useGameStore.getState().state.employees).toHaveLength(1);
     expect(useGameStore.getState().state.employees[0].assignedBusinessId).toBeNull();
     expect(screen.getByText('Your Team (1)')).toBeInTheDocument();
