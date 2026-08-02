@@ -11,7 +11,6 @@ export const BUSINESS_TEMPLATES: BusinessTemplate[] = [
     baseDailyIncome: 150,
     baseDailyExpense: 40,
     baseEmployeeCapacity: 2,
-    unlockLevel: 1,
   },
   {
     id: 'coffee_shop',
@@ -23,7 +22,6 @@ export const BUSINESS_TEMPLATES: BusinessTemplate[] = [
     baseDailyIncome: 600,
     baseDailyExpense: 200,
     baseEmployeeCapacity: 4,
-    unlockLevel: 1,
   },
   {
     id: 'bakery',
@@ -35,7 +33,6 @@ export const BUSINESS_TEMPLATES: BusinessTemplate[] = [
     baseDailyIncome: 1800,
     baseDailyExpense: 650,
     baseEmployeeCapacity: 6,
-    unlockLevel: 2,
   },
   {
     id: 'clothing_store',
@@ -47,7 +44,6 @@ export const BUSINESS_TEMPLATES: BusinessTemplate[] = [
     baseDailyIncome: 4200,
     baseDailyExpense: 1600,
     baseEmployeeCapacity: 8,
-    unlockLevel: 3,
   },
   {
     id: 'restaurant',
@@ -59,7 +55,6 @@ export const BUSINESS_TEMPLATES: BusinessTemplate[] = [
     baseDailyIncome: 10000,
     baseDailyExpense: 4000,
     baseEmployeeCapacity: 10,
-    unlockLevel: 4,
   },
   {
     id: 'tech_startup',
@@ -71,7 +66,6 @@ export const BUSINESS_TEMPLATES: BusinessTemplate[] = [
     baseDailyIncome: 24000,
     baseDailyExpense: 10000,
     baseEmployeeCapacity: 12,
-    unlockLevel: 5,
   },
   {
     id: 'game_studio',
@@ -83,7 +77,6 @@ export const BUSINESS_TEMPLATES: BusinessTemplate[] = [
     baseDailyIncome: 58000,
     baseDailyExpense: 25000,
     baseEmployeeCapacity: 15,
-    unlockLevel: 6,
   },
   {
     id: 'software_company',
@@ -95,7 +88,6 @@ export const BUSINESS_TEMPLATES: BusinessTemplate[] = [
     baseDailyIncome: 140000,
     baseDailyExpense: 60000,
     baseEmployeeCapacity: 18,
-    unlockLevel: 7,
   },
   {
     id: 'airline',
@@ -107,7 +99,6 @@ export const BUSINESS_TEMPLATES: BusinessTemplate[] = [
     baseDailyIncome: 340000,
     baseDailyExpense: 160000,
     baseEmployeeCapacity: 22,
-    unlockLevel: 9,
   },
   {
     id: 'car_company',
@@ -119,7 +110,6 @@ export const BUSINESS_TEMPLATES: BusinessTemplate[] = [
     baseDailyIncome: 800000,
     baseDailyExpense: 380000,
     baseEmployeeCapacity: 25,
-    unlockLevel: 11,
   },
 ];
 

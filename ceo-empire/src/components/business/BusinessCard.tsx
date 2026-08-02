@@ -1,5 +1,4 @@
-import clsx from 'clsx';
-import { Lock, ArrowUpRight, ArrowDownRight, Users } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Users } from 'lucide-react';
 import type { BusinessTemplate, GameState, OwnedBusiness } from '@/types/game';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -16,19 +15,11 @@ interface BusinessCardProps {
 }
 
 export function BusinessCard({ template, owned, state, onBuy, onManage }: BusinessCardProps) {
-  const locked = state.level < template.unlockLevel;
   const affordable = state.cash >= template.baseCost;
   const fin = owned ? businessFinancials(owned, state.employees, state.activeEvents) : null;
 
   return (
-    <Card className={clsx('relative flex flex-col gap-4 p-5', locked && 'opacity-60')}>
-      {locked && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-2xl bg-ink-950/70 backdrop-blur-[2px]">
-          <Lock className="h-5 w-5 text-white/50" />
-          <p className="text-xs font-medium text-white/60">Unlocks at level {template.unlockLevel}</p>
-        </div>
-      )}
-
+    <Card className="relative flex flex-col gap-4 p-5">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gold-500/10 text-gold-400">
@@ -72,7 +63,7 @@ export function BusinessCard({ template, owned, state, onBuy, onManage }: Busine
           Manage
         </Button>
       ) : (
-        <Button onClick={onBuy} disabled={locked || !affordable} className="w-full">
+        <Button onClick={onBuy} disabled={!affordable} className="w-full">
           {affordable ? `Buy for ${formatMoney(template.baseCost, { compact: true })}` : 'Not enough cash'}
         </Button>
       )}

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Lock } from 'lucide-react';
 import type { EmployeeTemplate, GameState } from '@/types/game';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -18,7 +17,6 @@ export function HireCard({
   onHire: (businessId: string | null) => void;
 }) {
   const [businessId, setBusinessId] = useState<string>('');
-  const locked = state.level < template.unlockLevel;
   const countOfType = state.employees.filter((e) => e.type === template.type).length;
   const cost = Math.round(template.baseHireCost * (1 + 0.12 * countOfType));
   const salary = Math.round(template.baseDailySalary * (1 + 0.08 * countOfType));
@@ -30,12 +28,6 @@ export function HireCard({
 
   return (
     <Card className="relative flex flex-col gap-3 p-5">
-      {locked && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-2xl bg-ink-950/70 backdrop-blur-[2px]">
-          <Lock className="h-5 w-5 text-white/50" />
-          <p className="text-xs font-medium text-white/60">Unlocks at level {template.unlockLevel}</p>
-        </div>
-      )}
       <div className="flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-700/40 text-navy-200">
           <Icon name={template.icon} className="h-5.5 w-5.5" />
@@ -67,7 +59,7 @@ export function HireCard({
 
       <Button
         onClick={() => onHire(businessId || null)}
-        disabled={locked || !affordable}
+        disabled={!affordable}
         className="w-full"
       >
         {affordable ? `Hire for ${formatMoney(cost)}` : 'Not enough cash'}

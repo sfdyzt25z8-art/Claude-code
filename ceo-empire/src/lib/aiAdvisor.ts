@@ -30,7 +30,7 @@ export function generateAdvice(state: GameState): AdviceItem[] {
     });
   } else {
     const nextAffordable = BUSINESS_TEMPLATES.filter(
-      (t) => !ownedIds.has(t.id) && state.level >= t.unlockLevel,
+      (t) => !ownedIds.has(t.id),
     ).sort((a, b) => a.baseCost - b.baseCost)[0];
     if (nextAffordable) {
       const canAfford = state.cash >= nextAffordable.baseCost;

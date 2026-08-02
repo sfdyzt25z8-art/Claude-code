@@ -44,12 +44,28 @@ describe('InvestmentsPage', () => {
     expect(screen.queryByText('Vertex Dynamics')).not.toBeInTheDocument();
   });
 
-  it('locks assets above the current level and leaves level-1 assets tradeable', () => {
+  it('makes every asset tradeable from day one, gated only by cash, not level', () => {
     renderPage();
-    // Nimbus Cloud unlocks at level 2; the level-1 starting state should lock it.
+    // Nimbus Cloud used to require level 2 — it should now show no lock at all.
     const nimbusCard = assetCard('Nimbus Cloud');
-    expect(within(nimbusCard).getByText(/Unlocks at level/)).toBeInTheDocument();
+    expect(within(nimbusCard).queryByText(/Unlocks at level/)).not.toBeInTheDocument();
     expect(within(assetCard('Vertex Dynamics')).queryByText(/Unlocks at level/)).not.toBeInTheDocument();
+  });
+
+  it('lists the new real-world-flavored assets across categories', () => {
+    renderPage();
+    expect(screen.getByText('Nike')).toBeInTheDocument();
+    expect(screen.getByText('Adidas')).toBeInTheDocument();
+    expect(screen.getByText('Housing Market Index')).toBeInTheDocument();
+    expect(screen.getByText('Gold')).toBeInTheDocument();
+  });
+
+  it('filters to the new Commodities category', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole('button', { name: 'Commodities' }));
+    expect(screen.getByText('Gold')).toBeInTheDocument();
+    expect(screen.queryByText('Vertex Dynamics')).not.toBeInTheDocument();
   });
 
   it('buys the default $100 into an unlocked asset and reflects it in the store', async () => {

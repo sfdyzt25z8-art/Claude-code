@@ -152,9 +152,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (state.businesses.some((b) => b.templateId === templateId)) {
       return { ok: false, error: 'You already own this business.' };
     }
-    if (state.level < template.unlockLevel) {
-      return { ok: false, error: `Reach level ${template.unlockLevel} to unlock this business.` };
-    }
     if (state.cash < template.baseCost) {
       return { ok: false, error: 'Not enough cash.' };
     }
@@ -204,9 +201,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   hireEmployee: (type, businessId) => {
     const { state } = get();
     const template = EMPLOYEE_TEMPLATES[type];
-    if (state.level < template.unlockLevel) {
-      return { ok: false, error: `Reach level ${template.unlockLevel} to hire this role.` };
-    }
     const countOfType = state.employees.filter((e) => e.type === type).length;
     const cost = Math.round(template.baseHireCost * (1 + 0.12 * countOfType));
     const salary = Math.round(template.baseDailySalary * (1 + 0.08 * countOfType));
@@ -296,9 +290,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const { state } = get();
     const asset = getInvestmentAsset(assetId);
     if (!asset) return { ok: false, error: 'Unknown asset.' };
-    if (state.level < asset.unlockLevel) {
-      return { ok: false, error: `Reach level ${asset.unlockLevel} to invest here.` };
-    }
     if (dollarAmount <= 0 || state.cash < dollarAmount) {
       return { ok: false, error: 'Not enough cash.' };
     }
