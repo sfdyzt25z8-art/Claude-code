@@ -33,6 +33,8 @@ describe('BusinessesPage', () => {
     expect(screen.getByText('Space Company')).toBeInTheDocument();
     expect(screen.getByText('Bank')).toBeInTheDocument();
     expect(screen.getByText('Car Company')).toBeInTheDocument();
+    expect(screen.getByText('Newsstand')).toBeInTheDocument();
+    expect(screen.getByText('Private Equity Firm')).toBeInTheDocument();
   });
 
   it('filters the list by category', async () => {

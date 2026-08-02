@@ -57,7 +57,15 @@ export type EmployeeType =
   | 'hr_specialist'
   | 'operations_manager'
   | 'data_analyst'
-  | 'executive_coo';
+  | 'executive_coo'
+  | 'security_guard'
+  | 'barista'
+  | 'logistics_coordinator'
+  | 'product_designer'
+  | 'legal_counsel'
+  | 'investment_banker'
+  | 'chief_technology_officer'
+  | 'brand_ambassador';
 
 export interface EmployeeTemplate {
   type: EmployeeType;

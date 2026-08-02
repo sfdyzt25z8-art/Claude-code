@@ -66,6 +66,8 @@ describe('InvestmentsPage', () => {
     expect(screen.getByText('Crude Oil')).toBeInTheDocument();
     expect(screen.getByText('StableStack')).toBeInTheDocument();
     expect(screen.getByText('SolarGrid Startup')).toBeInTheDocument();
+    expect(screen.getByText('Meridian Motors')).toBeInTheDocument();
+    expect(screen.getByText('BioForge Labs')).toBeInTheDocument();
   });
 
   it('filters to the new Commodities category', async () => {

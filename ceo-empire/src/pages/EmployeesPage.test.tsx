@@ -42,6 +42,8 @@ describe('EmployeesPage', () => {
     expect(screen.getByText('Sales Rep')).toBeInTheDocument();
     expect(screen.getByText('Data Analyst')).toBeInTheDocument();
     expect(screen.getByText('Executive COO')).toBeInTheDocument();
+    expect(screen.getByText('Security Guard')).toBeInTheDocument();
+    expect(screen.getByText('Chief Technology Officer')).toBeInTheDocument();
   });
 
   it('makes every role hireable from day one, gated only by cash, not level', () => {
