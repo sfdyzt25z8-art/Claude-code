@@ -141,7 +141,7 @@ describe('businessProfitExplainer', () => {
     expect(summary).toContain('Lemonade Stand');
     expect(summary).toContain(formatMoney(fin.dailyIncome, { compact: true }));
     expect(summary).toContain(formatMoney(fin.dailyExpense, { compact: true }));
-    expect(summary).toContain(`profit of ${formatMoney(fin.dailyProfit, { compact: true })}/day`);
+    expect(summary).toContain(`profit of ${formatMoney(fin.dailyProfit, { compact: true })}/sec`);
     // A fresh business with no Marketing/Staff investment should be bleeding money
     // to the neglect penalty, so expense is meaningfully above the raw base expense.
     expect(fin.dailyExpense).toBeGreaterThan(fin.baseExpense);
