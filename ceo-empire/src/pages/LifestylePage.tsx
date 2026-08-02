@@ -15,6 +15,7 @@ const CATEGORIES: { id: LifestyleCategory | 'all'; label: string }[] = [
   { id: 'jewelry', label: LIFESTYLE_CATEGORY_LABELS.jewelry },
   { id: 'land', label: LIFESTYLE_CATEGORY_LABELS.land },
   { id: 'vehicles', label: LIFESTYLE_CATEGORY_LABELS.vehicles },
+  { id: 'collectibles', label: LIFESTYLE_CATEGORY_LABELS.collectibles },
 ];
 
 export default function LifestylePage() {

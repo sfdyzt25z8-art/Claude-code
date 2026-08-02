@@ -61,6 +61,9 @@ export function createInitialState(): GameState {
     settings: DEFAULT_SETTINGS,
     totalLifestyleSpend: 0,
     lifestyleOwned: {},
+    education: 0,
+    totalEducationSpend: 0,
+    activitiesCompleted: {},
   };
 }
 
@@ -73,6 +76,9 @@ export function hydrateState(raw: GameState): GameState {
     settings: { ...DEFAULT_SETTINGS, ...raw.settings },
     totalLifestyleSpend: raw.totalLifestyleSpend ?? 0,
     lifestyleOwned: raw.lifestyleOwned ?? {},
+    education: raw.education ?? 0,
+    totalEducationSpend: raw.totalEducationSpend ?? 0,
+    activitiesCompleted: raw.activitiesCompleted ?? {},
     employees: raw.employees.map((e) => ({ ...e, skillLevel: e.skillLevel ?? 0 })),
   };
 }
@@ -80,6 +86,14 @@ export function hydrateState(raw: GameState): GameState {
 /** Permanent income multiplier earned from past Prestige resets. */
 export function prestigeMultiplier(state: GameState): number {
   return 1 + state.prestige.count * PRESTIGE_INCOME_BONUS_PER_LEVEL;
+}
+
+/** Fractional income boost per 10 points of Education (capped at 100 education = +15%). */
+export const EDUCATION_BONUS_PER_10_POINTS = 0.015;
+
+/** Global income multiplier earned from completed learning activities. */
+export function educationMultiplier(state: GameState): number {
+  return 1 + Math.floor(state.education / 10) * EDUCATION_BONUS_PER_10_POINTS;
 }
 
 /**
@@ -214,9 +228,9 @@ export function computeEmpireTotals(state: GameState): EmpireTotals {
     dailyIncome += fin.dailyIncome;
     dailyExpense += fin.dailyExpense;
   }
-  // Prestige grants a permanent, empire-wide income boost (applied here rather than
-  // per-business so each business's own numbers stay legible on its own).
-  dailyIncome *= prestigeMultiplier(state);
+  // Prestige and Education grant permanent, empire-wide income boosts (applied here
+  // rather than per-business so each business's own numbers stay legible on its own).
+  dailyIncome *= prestigeMultiplier(state) * educationMultiplier(state);
   return { dailyIncome, dailyExpense, dailyProfit: dailyIncome - dailyExpense };
 }
 

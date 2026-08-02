@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useGameStore } from './gameStore';
 import { createInitialState, PRESTIGE_MIN_NET_WORTH } from '@/lib/gameEngine';
+import { xpForNextLevel, levelProgressFromXp } from '@/data/levels';
+import { getActivity, activityXpReward } from '@/data/activities';
 
 describe('gameStore.prestige', () => {
   beforeEach(() => {
@@ -143,5 +145,91 @@ describe('gameStore.buyLifestyleItem', () => {
   it('fails for an unknown item id', () => {
     const result = useGameStore.getState().buyLifestyleItem('nope');
     expect(result.ok).toBe(false);
+  });
+});
+
+describe('gameStore.doActivity', () => {
+  beforeEach(() => {
+    useGameStore.setState({
+      state: createInitialState(),
+      isLoaded: true,
+      activeUid: 'test-uid',
+      notifications: [],
+      offlineSummary: null,
+    });
+  });
+
+  it('spends cash, raises education, earns XP, and tracks the completion', () => {
+    const result = useGameStore.getState().doActivity('business_book');
+
+    expect(result.ok).toBe(true);
+    const state = useGameStore.getState().state;
+    expect(state.cash).toBe(10_000 - 10);
+    expect(state.education).toBe(1);
+    expect(state.xp).toBe(activityXpReward(getActivity('business_book')!));
+    expect(state.totalEducationSpend).toBe(10);
+    expect(state.activitiesCompleted.business_book).toBe(1);
+  });
+
+  it('accumulates completions and spend across repeats', () => {
+    useGameStore.getState().doActivity('business_book');
+    useGameStore.getState().doActivity('business_book');
+
+    const state = useGameStore.getState().state;
+    expect(state.activitiesCompleted.business_book).toBe(2);
+    expect(state.totalEducationSpend).toBe(20);
+    expect(state.education).toBe(2);
+  });
+
+  it('caps education at 100', () => {
+    useGameStore.setState((s) => ({ state: { ...s.state, cash: 1_000_000, education: 99 } }));
+    useGameStore.getState().doActivity('executive_mba'); // educationBoost 20
+    expect(useGameStore.getState().state.education).toBe(100);
+  });
+
+  it('fails without touching state when cash is insufficient', () => {
+    useGameStore.setState((s) => ({ state: { ...s.state, cash: 5 } }));
+    const result = useGameStore.getState().doActivity('business_book');
+    expect(result.ok).toBe(false);
+    expect(useGameStore.getState().state.cash).toBe(5);
+    expect(useGameStore.getState().state.education).toBe(0);
+  });
+
+  it('fails for an unknown activity id', () => {
+    const result = useGameStore.getState().doActivity('nope');
+    expect(result.ok).toBe(false);
+  });
+
+  it('spends XP instead of cash for a recreation activity', () => {
+    useGameStore.setState((s) => ({ state: { ...s.state, xp: 100 } }));
+    const result = useGameStore.getState().doActivity('go_for_a_run');
+
+    expect(result.ok).toBe(true);
+    const state = useGameStore.getState().state;
+    expect(state.xp).toBe(100 - 15);
+    expect(state.cash).toBe(10_000);
+    expect(state.education).toBe(1);
+    expect(state.totalEducationSpend).toBe(0);
+    expect(state.activitiesCompleted.go_for_a_run).toBe(1);
+  });
+
+  it('fails without touching state when XP is insufficient', () => {
+    useGameStore.setState((s) => ({ state: { ...s.state, xp: 5 } }));
+    const result = useGameStore.getState().doActivity('go_for_a_run');
+    expect(result.ok).toBe(false);
+    expect(useGameStore.getState().state.xp).toBe(5);
+    expect(useGameStore.getState().state.education).toBe(0);
+  });
+
+  it('recomputes level immediately when spending XP drops the player below a level threshold', () => {
+    const xpForLevel2 = xpForNextLevel(1);
+    useGameStore.setState((s) => ({ state: { ...s.state, xp: xpForLevel2, level: 2 } }));
+
+    useGameStore.getState().doActivity('esports_tournament'); // costs 200 xp
+
+    const state = useGameStore.getState().state;
+    expect(state.xp).toBe(xpForLevel2 - 200);
+    expect(state.level).toBe(levelProgressFromXp(state.xp).level);
+    expect(state.level).toBe(1);
   });
 });

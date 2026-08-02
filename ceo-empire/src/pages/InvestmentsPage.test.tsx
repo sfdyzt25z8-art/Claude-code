@@ -60,6 +60,14 @@ describe('InvestmentsPage', () => {
     expect(screen.getByText('Gold')).toBeInTheDocument();
   });
 
+  it('lists the newest additional assets across categories', () => {
+    renderPage();
+    expect(screen.getByText('Silver')).toBeInTheDocument();
+    expect(screen.getByText('Crude Oil')).toBeInTheDocument();
+    expect(screen.getByText('StableStack')).toBeInTheDocument();
+    expect(screen.getByText('SolarGrid Startup')).toBeInTheDocument();
+  });
+
   it('filters to the new Commodities category', async () => {
     const user = userEvent.setup();
     renderPage();

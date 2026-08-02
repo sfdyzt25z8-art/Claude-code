@@ -53,6 +53,16 @@ const HAND_AUTHORED_ASSETS: InvestmentAsset[] = [
     drift: 0.004,
     icon: 'Footprints',
   },
+  {
+    id: 'quantum_retail',
+    name: 'Quantum Retail Corp',
+    symbol: 'QRC',
+    category: 'stock',
+    basePrice: 210,
+    volatility: 0.022,
+    drift: 0.005,
+    icon: 'ShoppingBag',
+  },
   // Real estate — low volatility, slow steady drift
   {
     id: 'downtown_loft',
@@ -94,6 +104,16 @@ const HAND_AUTHORED_ASSETS: InvestmentAsset[] = [
     drift: 0.0032,
     icon: 'Landmark',
   },
+  {
+    id: 'overseas_villa_fund',
+    name: 'Overseas Villa Fund',
+    symbol: 'RE-OVF',
+    category: 'real_estate',
+    basePrice: 4200,
+    volatility: 0.0065,
+    drift: 0.0033,
+    icon: 'Palmtree',
+  },
   // Commodities — low-to-medium volatility, slow steady drift
   {
     id: 'gold',
@@ -104,6 +124,26 @@ const HAND_AUTHORED_ASSETS: InvestmentAsset[] = [
     volatility: 0.008,
     drift: 0.0025,
     icon: 'Gem',
+  },
+  {
+    id: 'silver',
+    name: 'Silver',
+    symbol: 'SLVR',
+    category: 'commodity',
+    basePrice: 28,
+    volatility: 0.011,
+    drift: 0.0022,
+    icon: 'Coins',
+  },
+  {
+    id: 'crude_oil',
+    name: 'Crude Oil',
+    symbol: 'OIL',
+    category: 'commodity',
+    basePrice: 75,
+    volatility: 0.016,
+    drift: 0.003,
+    icon: 'Droplet',
   },
   // Crypto — high volatility, wildly variable
   {
@@ -136,6 +176,16 @@ const HAND_AUTHORED_ASSETS: InvestmentAsset[] = [
     drift: 0.002,
     icon: 'Rocket',
   },
+  {
+    id: 'stablestack',
+    name: 'StableStack',
+    symbol: 'STBL',
+    category: 'crypto',
+    basePrice: 1,
+    volatility: 0.005,
+    drift: 0.001,
+    icon: 'Anchor',
+  },
   // Startups — high risk, high potential reward
   {
     id: 'neuralbyte',
@@ -157,19 +207,37 @@ const HAND_AUTHORED_ASSETS: InvestmentAsset[] = [
     drift: 0.009,
     icon: 'Zap',
   },
+  {
+    id: 'solargrid',
+    name: 'SolarGrid Startup',
+    symbol: 'SLGR',
+    category: 'startup',
+    basePrice: 45,
+    volatility: 0.055,
+    drift: 0.011,
+    icon: 'Sun',
+  },
 ];
 
 const BUSINESS_STOCK_SYMBOLS: Record<string, string> = {
   lemonade_stand: 'LEMN',
+  food_truck: 'GRUB',
   coffee_shop: 'BREW',
   bakery: 'BAKE',
   clothing_store: 'THRD',
+  gym: 'FLEX',
   restaurant: 'DINE',
+  movie_theater: 'REEL',
   tech_startup: 'TECH',
+  logistics_company: 'SHIP',
   game_studio: 'GAME',
+  hotel: 'STAY',
   software_company: 'SOFT',
+  bank: 'BANK',
   airline: 'FLY',
+  real_estate_firm: 'REAL',
   car_company: 'AUTO',
+  space_company: 'ORBT',
 };
 
 /**

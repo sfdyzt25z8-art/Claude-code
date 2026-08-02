@@ -30,12 +30,23 @@ describe('LifestylePage', () => {
     });
   });
 
-  it('lists items across categories', () => {
+  it('lists items across categories, including the newer additions', () => {
     renderPage();
     expect(screen.getByText('Designer Suit')).toBeInTheDocument();
     expect(screen.getByText('Gold Watch')).toBeInTheDocument();
     expect(screen.getByText('Countryside Estate')).toBeInTheDocument();
     expect(screen.getByText('Sports Car')).toBeInTheDocument();
+    expect(screen.getByText('Yacht')).toBeInTheDocument();
+    expect(screen.getByText('Vintage Art Collection')).toBeInTheDocument();
+  });
+
+  it('filters to the new Collectibles category', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole('button', { name: 'Collectibles' }));
+    expect(screen.getByText('Wine Cellar Collection')).toBeInTheDocument();
+    expect(screen.getByText('Vintage Art Collection')).toBeInTheDocument();
+    expect(screen.queryByText('Designer Suit')).not.toBeInTheDocument();
   });
 
   it('filters the list by category', async () => {

@@ -58,7 +58,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm font-semibold text-white">Level {state.level} CEO</p>
               <p className="text-xs text-white/40">
-                {progress.currentLevelXp.toLocaleString()} / {progress.xpToNextLevel.toLocaleString()} XP to next level
+                {Math.floor(progress.currentLevelXp).toLocaleString()} / {progress.xpToNextLevel.toLocaleString()} XP to next level
               </p>
             </div>
           </div>
@@ -66,7 +66,7 @@ export default function DashboardPage() {
             <ProgressBar
               value={progress.currentLevelXp}
               max={progress.xpToNextLevel}
-              ariaLabel={`${progress.currentLevelXp} of ${progress.xpToNextLevel} XP to next level`}
+              ariaLabel={`${Math.floor(progress.currentLevelXp)} of ${progress.xpToNextLevel} XP to next level`}
             />
           </div>
         </div>
