@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Falcon FA — Halftime Snack Preorder</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-badge">🦅</span>
+      <div>
+        <h1>Falcon Football Academy</h1>
+        <p>Halftime Snack Preorder</p>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="order">Preorder</button>
+      <button class="tab-btn" data-tab="pickup">Halftime Pickup</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ORDER TAB -->
+    <section id="order" class="tab-panel active">
+      <form id="order-form" class="card">
+        <h2>Pick your snack &amp; drink before Saturday's match</h2>
+
+        <label>
+          Player name
+          <input type="text" id="player-name" placeholder="e.g. Zayed A." required />
+        </label>
+
+        <label>
+          Team / age group
+          <select id="player-team" required>
+            <option value="" disabled selected>Select your team</option>
+            <option>U8</option>
+            <option>U10</option>
+            <option>U12</option>
+            <option>U14</option>
+            <option>U16</option>
+          </select>
+        </label>
+
+        <fieldset>
+          <legend>Snack</legend>
+          <div class="option-grid" id="snack-options">
+            <label class="option"><input type="radio" name="snack" value="Banana" required><span>🍌 Banana</span></label>
+            <label class="option"><input type="radio" name="snack" value="Orange Slices"><span>🍊 Orange Slices</span></label>
+            <label class="option"><input type="radio" name="snack" value="Granola Bar"><span>🥜 Granola Bar</span></label>
+            <label class="option"><input type="radio" name="snack" value="Apple"><span>🍎 Apple</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Drink</legend>
+          <div class="option-grid" id="drink-options">
+            <label class="option"><input type="radio" name="drink" value="Water" required><span>💧 Water</span></label>
+            <label class="option"><input type="radio" name="drink" value="Electrolyte Drink"><span>⚡ Electrolyte Drink</span></label>
+            <label class="option"><input type="radio" name="drink" value="Juice Box"><span>🧃 Juice Box</span></label>
+          </div>
+        </fieldset>
+
+        <label>
+          Allergy note (optional)
+          <input type="text" id="allergy-note" placeholder="e.g. nut allergy" />
+        </label>
+
+        <button type="submit" class="btn-primary">Reserve my bag</button>
+        <p id="order-confirm" class="confirm" hidden></p>
+      </form>
+
+      <div class="card">
+        <h3>Your upcoming order</h3>
+        <p id="my-order-summary" class="muted">No order saved on this device yet.</p>
+        <button id="cancel-order" class="btn-secondary" hidden>Cancel my order</button>
+      </div>
+    </section>
+
+    <!-- PICKUP TAB -->
+    <section id="pickup" class="tab-panel">
+      <div class="card">
+        <div class="pickup-header">
+          <h2>Halftime Bag Pickup</h2>
+          <div class="stats">
+            <span id="stat-total">0 bags</span>
+            <span id="stat-remaining">0 remaining</span>
+          </div>
+        </div>
+        <input type="search" id="pickup-search" placeholder="Search by player name…" />
+        <div class="filter-row">
+          <label><input type="checkbox" id="hide-picked" /> Hide already-collected bags</label>
+          <button id="reset-day" class="btn-secondary">Reset for next Saturday</button>
+        </div>
+        <ul id="pickup-list" class="pickup-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Built for Operation Halftime Stampede — no more shin-pad stampedes at the snack box.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
