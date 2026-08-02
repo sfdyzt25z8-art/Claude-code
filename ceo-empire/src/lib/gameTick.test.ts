@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createInitialState, GAME_DAY_SECONDS, GAME_HOUR_SECONDS, NEGLECT_RATE } from './gameEngine';
 import { advanceTime } from './gameTick';
 import { xpForNextLevel } from '@/data/levels';
+import { INVESTMENT_ASSETS } from '@/data/investments';
 import type { OwnedBusiness } from '@/types/game';
 
 function lemonadeStand(): OwnedBusiness {
@@ -92,6 +93,29 @@ describe('advanceTime', () => {
     const result = advanceTime(state, 1, state.lastTickAt + 1000);
     expect(result.state.xp).toBeGreaterThan(0);
     expect(result.state.xp).toBeLessThan(1);
+  });
+
+  it('applies a one-time cash effect when a cash-target event triggers, not just a notification', () => {
+    // Regression test: activeEventMultiplier only ever handles 'all_income'/'all_expenses',
+    // so 'cash'-target events (like a tax refund) used to trigger and log a notification
+    // without ever actually moving any money.
+    const state = createInitialState();
+    const randomSpy = vi.spyOn(Math, 'random');
+    // simulateMarketTick draws 12 Math.random() values per asset before the event roll —
+    // their value doesn't matter here, only the count needs to line up.
+    for (let i = 0; i < INVESTMENT_ASSETS.length * 12; i++) randomSpy.mockReturnValueOnce(0.5);
+    randomSpy.mockReturnValueOnce(0.1); // passes the 55% daily-event chance check
+    randomSpy.mockReturnValueOnce(0.8); // rollRandomEvent: 0.8 * 55 = 44 -> tax_refund's (39, 48] slice
+
+    const now = state.lastTickAt + (GAME_DAY_SECONDS + 5) * 1000;
+    const result = advanceTime(state, GAME_DAY_SECONDS + 5, now);
+
+    expect(result.triggeredEvents[0]?.templateId).toBe('tax_refund');
+    // tax_refund: value 0.05 -> +5% of cash at trigger time, applied directly since
+    // there is no ongoing income/expense multiplier for a one-time 'cash' event.
+    expect(result.state.cash).toBeCloseTo(state.cash * 1.05, 5);
+
+    randomSpy.mockRestore();
   });
 
   it('advances lastTickAt to the provided now', () => {
