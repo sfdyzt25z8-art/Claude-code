@@ -36,12 +36,20 @@ describe('EmployeesPage', () => {
     expect(screen.getByText('Your Team (0)')).toBeInTheDocument();
   });
 
-  it('locks roles above the current level and leaves the starting role hireable', () => {
+  it('makes every role hireable from day one, gated only by cash, not level', () => {
     renderPage();
-    // Manager unlocks at level 2; the level-1 starting state should lock it.
+    // No role should show a level lock — Manager ($1,500) is affordable out of the starting $10,000.
     const managerCard = screen.getByText('Manager').closest<HTMLDivElement>('div.relative')!;
-    expect(within(managerCard).getByText(/Unlocks at level/)).toBeInTheDocument();
+    expect(within(managerCard).queryByText(/Unlocks at level/)).not.toBeInTheDocument();
+    expect(within(managerCard).getByRole('button', { name: /Hire for \$1,500/ })).toBeEnabled();
     expect(within(cashierCard()).queryByText(/Unlocks at level/)).not.toBeInTheDocument();
+  });
+
+  it('disables hiring an expensive role once cash runs short, regardless of level', () => {
+    useGameStore.setState((s) => ({ state: { ...s.state, cash: 100 } }));
+    renderPage();
+    const developerCard = screen.getByText('Developer').closest<HTMLDivElement>('div.relative')!;
+    expect(within(developerCard).getByRole('button', { name: 'Not enough cash' })).toBeDisabled();
   });
 
   it('hires an unassigned employee and reflects it in the store and roster', async () => {

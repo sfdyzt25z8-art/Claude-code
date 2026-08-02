@@ -26,20 +26,3 @@ export function levelProgressFromXp(totalXp: number): LevelProgress {
     totalXp,
   };
 }
-
-export interface LevelUnlock {
-  level: number;
-  description: string;
-}
-
-export const LEVEL_UNLOCKS: LevelUnlock[] = [
-  { level: 1, description: 'Lemonade Stand & Coffee Shop unlocked' },
-  { level: 2, description: 'Bakery, Manager hires, and stock investing unlocked' },
-  { level: 3, description: 'Clothing Store, real estate, and marketing hires unlocked' },
-  { level: 4, description: 'Restaurant, Developers, and crypto investing unlocked' },
-  { level: 5, description: 'Tech Startup and startup investing unlocked' },
-  { level: 6, description: 'Game Studio unlocked' },
-  { level: 7, description: 'Software Company unlocked' },
-  { level: 9, description: 'Airline unlocked' },
-  { level: 11, description: 'Car Company unlocked — the top tier' },
-];

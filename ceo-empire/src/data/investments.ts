@@ -11,7 +11,6 @@ export const INVESTMENT_ASSETS: InvestmentAsset[] = [
     volatility: 0.02,
     drift: 0.004,
     icon: 'LineChart',
-    unlockLevel: 1,
   },
   {
     id: 'nmb',
@@ -22,7 +21,6 @@ export const INVESTMENT_ASSETS: InvestmentAsset[] = [
     volatility: 0.025,
     drift: 0.006,
     icon: 'Cloud',
-    unlockLevel: 2,
   },
   {
     id: 'orb',
@@ -33,7 +31,26 @@ export const INVESTMENT_ASSETS: InvestmentAsset[] = [
     volatility: 0.015,
     drift: 0.003,
     icon: 'Wheat',
-    unlockLevel: 1,
+  },
+  {
+    id: 'nike',
+    name: 'Nike',
+    symbol: 'NKE',
+    category: 'stock',
+    basePrice: 95,
+    volatility: 0.018,
+    drift: 0.0045,
+    icon: 'Footprints',
+  },
+  {
+    id: 'adidas',
+    name: 'Adidas',
+    symbol: 'ADS',
+    category: 'stock',
+    basePrice: 78,
+    volatility: 0.019,
+    drift: 0.004,
+    icon: 'Footprints',
   },
   // Real estate — low volatility, slow steady drift
   {
@@ -45,7 +62,6 @@ export const INVESTMENT_ASSETS: InvestmentAsset[] = [
     volatility: 0.006,
     drift: 0.0035,
     icon: 'Building2',
-    unlockLevel: 3,
   },
   {
     id: 'suburban_complex',
@@ -56,7 +72,6 @@ export const INVESTMENT_ASSETS: InvestmentAsset[] = [
     volatility: 0.005,
     drift: 0.003,
     icon: 'Home',
-    unlockLevel: 4,
   },
   {
     id: 'industrial_park',
@@ -67,7 +82,27 @@ export const INVESTMENT_ASSETS: InvestmentAsset[] = [
     volatility: 0.004,
     drift: 0.0028,
     icon: 'Warehouse',
-    unlockLevel: 6,
+  },
+  {
+    id: 'housing_market',
+    name: 'Housing Market Index',
+    symbol: 'HOUSE',
+    category: 'real_estate',
+    basePrice: 850,
+    volatility: 0.007,
+    drift: 0.0032,
+    icon: 'Landmark',
+  },
+  // Commodities — low-to-medium volatility, slow steady drift
+  {
+    id: 'gold',
+    name: 'Gold',
+    symbol: 'GOLD',
+    category: 'commodity',
+    basePrice: 260,
+    volatility: 0.008,
+    drift: 0.0025,
+    icon: 'Gem',
   },
   // Crypto — high volatility, wildly variable
   {
@@ -79,7 +114,6 @@ export const INVESTMENT_ASSETS: InvestmentAsset[] = [
     volatility: 0.05,
     drift: 0.005,
     icon: 'Bitcoin',
-    unlockLevel: 2,
   },
   {
     id: 'etherlink',
@@ -90,7 +124,6 @@ export const INVESTMENT_ASSETS: InvestmentAsset[] = [
     volatility: 0.055,
     drift: 0.0045,
     icon: 'Hexagon',
-    unlockLevel: 3,
   },
   {
     id: 'moonpup',
@@ -101,7 +134,6 @@ export const INVESTMENT_ASSETS: InvestmentAsset[] = [
     volatility: 0.09,
     drift: 0.002,
     icon: 'Rocket',
-    unlockLevel: 4,
   },
   // Startups — high risk, high potential reward
   {
@@ -113,7 +145,6 @@ export const INVESTMENT_ASSETS: InvestmentAsset[] = [
     volatility: 0.07,
     drift: 0.012,
     icon: 'BrainCircuit',
-    unlockLevel: 5,
   },
   {
     id: 'greenvolt',
@@ -124,7 +155,6 @@ export const INVESTMENT_ASSETS: InvestmentAsset[] = [
     volatility: 0.06,
     drift: 0.009,
     icon: 'Zap',
-    unlockLevel: 5,
   },
 ];
 

@@ -50,6 +50,7 @@ import {
   HelpCircle,
   Infinity as InfinityIcon,
   PiggyBank,
+  Footprints,
   type LucideProps,
 } from 'lucide-react';
 
@@ -105,6 +106,7 @@ const ICONS: Record<string, React.ComponentType<LucideProps>> = {
   HelpCircle,
   Infinity: InfinityIcon,
   PiggyBank,
+  Footprints,
 };
 
 interface IconProps extends LucideProps {

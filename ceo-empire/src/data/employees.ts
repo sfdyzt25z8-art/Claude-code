@@ -10,7 +10,6 @@ export const EMPLOYEE_TEMPLATES: Record<EmployeeType, EmployeeTemplate> = {
     baseDailySalary: 60,
     incomeBoost: 0.04,
     expenseReduction: 0,
-    unlockLevel: 1,
     suitedCategories: ['food', 'retail'],
   },
   manager: {
@@ -22,7 +21,6 @@ export const EMPLOYEE_TEMPLATES: Record<EmployeeType, EmployeeTemplate> = {
     baseDailySalary: 180,
     incomeBoost: 0.06,
     expenseReduction: -0.03,
-    unlockLevel: 2,
     suitedCategories: ['food', 'retail', 'transport', 'manufacturing'],
   },
   accountant: {
@@ -34,7 +32,6 @@ export const EMPLOYEE_TEMPLATES: Record<EmployeeType, EmployeeTemplate> = {
     baseDailySalary: 220,
     incomeBoost: 0.01,
     expenseReduction: -0.1,
-    unlockLevel: 3,
     suitedCategories: ['food', 'retail', 'tech', 'transport', 'manufacturing'],
   },
   developer: {
@@ -46,7 +43,6 @@ export const EMPLOYEE_TEMPLATES: Record<EmployeeType, EmployeeTemplate> = {
     baseDailySalary: 400,
     incomeBoost: 0.1,
     expenseReduction: -0.02,
-    unlockLevel: 4,
     suitedCategories: ['tech'],
   },
   marketing_specialist: {
@@ -58,7 +54,6 @@ export const EMPLOYEE_TEMPLATES: Record<EmployeeType, EmployeeTemplate> = {
     baseDailySalary: 260,
     incomeBoost: 0.08,
     expenseReduction: 0.01,
-    unlockLevel: 3,
     suitedCategories: ['food', 'retail', 'tech', 'transport', 'manufacturing'],
   },
 };

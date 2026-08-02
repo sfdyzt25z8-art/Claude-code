@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Lock } from 'lucide-react';
 import type { GameState, InvestmentAsset } from '@/types/game';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -19,7 +18,6 @@ export function AssetCard({
   onSell: (quantity: number) => void;
 }) {
   const [amount, setAmount] = useState('100');
-  const locked = state.level < asset.unlockLevel;
   const price = state.marketPrices[asset.id] ?? asset.basePrice;
   const history = state.priceHistory[asset.id] ?? [];
   const firstPrice = history[0]?.price ?? price;
@@ -30,13 +28,7 @@ export function AssetCard({
   const dollarAmount = Math.max(0, Number(amount) || 0);
 
   return (
-    <Card className={`relative flex flex-col gap-3 p-5 ${locked ? 'opacity-60' : ''}`}>
-      {locked && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-2xl bg-ink-950/70 backdrop-blur-[2px]">
-          <Lock className="h-5 w-5 text-white/50" />
-          <p className="text-xs font-medium text-white/60">Unlocks at level {asset.unlockLevel}</p>
-        </div>
-      )}
+    <Card className="relative flex flex-col gap-3 p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy-700/40 text-navy-200">
@@ -73,14 +65,14 @@ export function AssetCard({
           className="w-full rounded-lg border border-white/10 bg-ink-900/70 px-3 py-2 text-xs text-white outline-none focus:border-gold-500/50"
           placeholder="$ amount"
         />
-        <Button size="sm" onClick={() => onBuy(dollarAmount)} disabled={locked || dollarAmount <= 0 || state.cash < dollarAmount}>
+        <Button size="sm" onClick={() => onBuy(dollarAmount)} disabled={dollarAmount <= 0 || state.cash < dollarAmount}>
           Buy
         </Button>
         <Button
           size="sm"
           variant="secondary"
           onClick={() => onSell(holding ? holding.quantity : 0)}
-          disabled={locked || !holding || holding.quantity <= 0}
+          disabled={!holding || holding.quantity <= 0}
         >
           Sell All
         </Button>

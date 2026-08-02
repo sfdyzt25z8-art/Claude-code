@@ -35,7 +35,6 @@ export interface BusinessTemplate {
   baseDailyIncome: number;
   baseDailyExpense: number;
   baseEmployeeCapacity: number;
-  unlockLevel: number;
 }
 
 export interface OwnedBusiness {
@@ -64,7 +63,6 @@ export interface EmployeeTemplate {
   incomeBoost: number;
   /** Multiplier applied to a business's daily expense when assigned (reductions are < 1). */
   expenseReduction: number;
-  unlockLevel: number;
   suitedCategories: BusinessCategory[];
 }
 
@@ -77,7 +75,7 @@ export interface Employee {
   dailySalary: number;
 }
 
-export type InvestmentCategory = 'stock' | 'real_estate' | 'crypto' | 'startup';
+export type InvestmentCategory = 'stock' | 'real_estate' | 'crypto' | 'startup' | 'commodity';
 
 export interface InvestmentAsset {
   id: string;
@@ -90,7 +88,6 @@ export interface InvestmentAsset {
   /** Long-run per-day drift, e.g. 0.01 = +1%/day on average. */
   drift: number;
   icon: string;
-  unlockLevel: number;
 }
 
 export interface InvestmentHolding {
