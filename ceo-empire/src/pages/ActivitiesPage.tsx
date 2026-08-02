@@ -3,7 +3,7 @@ import { useGameStore } from '@/store/gameStore';
 import { ACTIVITY_ITEMS, ACTIVITY_CATEGORY_LABELS } from '@/data/activities';
 import { ActivityItemCard } from '@/components/activity/ActivityItemCard';
 import { Card } from '@/components/ui/Card';
-import { formatMoney, formatPercent } from '@/lib/format';
+import { formatMoney, formatNumber, formatPercent } from '@/lib/format';
 import { educationMultiplier } from '@/lib/gameEngine';
 import type { ActivityCategory } from '@/types/game';
 import { playSound } from '@/lib/audio';
@@ -14,6 +14,7 @@ const CATEGORIES: { id: ActivityCategory | 'all'; label: string }[] = [
   { id: 'reading', label: ACTIVITY_CATEGORY_LABELS.reading },
   { id: 'classes', label: ACTIVITY_CATEGORY_LABELS.classes },
   { id: 'college', label: ACTIVITY_CATEGORY_LABELS.college },
+  { id: 'recreation', label: ACTIVITY_CATEGORY_LABELS.recreation },
 ];
 
 export default function ActivitiesPage() {
@@ -41,7 +42,7 @@ export default function ActivitiesPage() {
       <div>
         <h1 className="text-2xl font-bold text-white sm:text-3xl">Learning</h1>
         <p className="text-sm text-white/40">
-          Read, take classes, and go to college — cheap self-improvement that adds up to a real income boost.
+          Read, take classes, go to college, or blow off steam with recreation — cheap self-improvement that adds up to a real income boost.
         </p>
       </div>
 
@@ -61,6 +62,10 @@ export default function ActivitiesPage() {
         <div>
           <p className="text-xs text-white/40">Available Cash</p>
           <p className="text-xl font-semibold text-white">{formatMoney(state.cash, { compact: true })}</p>
+        </div>
+        <div>
+          <p className="text-xs text-white/40">Available XP</p>
+          <p className="text-xl font-semibold text-white">{formatNumber(state.xp)}</p>
         </div>
       </Card>
 
@@ -93,6 +98,7 @@ export default function ActivitiesPage() {
             key={activity.id}
             activity={activity}
             cash={state.cash}
+            xp={state.xp}
             completed={state.activitiesCompleted[activity.id] ?? 0}
             onDo={() => handleDo(activity.id)}
           />

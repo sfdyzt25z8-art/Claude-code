@@ -83,4 +83,38 @@ describe('ActivitiesPage', () => {
     expect(screen.getByText('20/100')).toBeInTheDocument();
     expect(screen.getByText('+3%')).toBeInTheDocument();
   });
+
+  it('filters to the Recreation category', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole('button', { name: 'Recreation' }));
+    expect(screen.getByText('Play Video Games')).toBeInTheDocument();
+    expect(screen.queryByText('Read a Business Book')).not.toBeInTheDocument();
+  });
+
+  it('does a recreation activity, spending XP instead of cash and raising education', async () => {
+    useGameStore.setState((s) => ({ state: { ...s.state, xp: 100 } }));
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(within(activityCard('Go for a Run')).getByRole('button', { name: 'Do it for 15 XP' }));
+
+    expect(useGameStore.getState().state.xp).toBe(100 - 15);
+    expect(useGameStore.getState().state.cash).toBe(10_000);
+    expect(useGameStore.getState().state.education).toBe(1);
+    expect(useGameStore.getState().state.activitiesCompleted.go_for_a_run).toBe(1);
+    expect(screen.getByText('Done 1x')).toBeInTheDocument();
+  });
+
+  it('disables a recreation activity the player cannot afford in XP, without touching the store', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const buyButton = within(activityCard('Go for a Run')).getByRole('button', { name: 'Not enough XP' });
+    expect(buyButton).toBeDisabled();
+
+    await user.click(buyButton);
+    expect(useGameStore.getState().state.xp).toBe(0);
+    expect(useGameStore.getState().state.education).toBe(0);
+  });
 });

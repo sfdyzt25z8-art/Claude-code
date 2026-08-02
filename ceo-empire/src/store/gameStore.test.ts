@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useGameStore } from './gameStore';
 import { createInitialState, PRESTIGE_MIN_NET_WORTH } from '@/lib/gameEngine';
+import { xpForNextLevel, levelProgressFromXp } from '@/data/levels';
 
 describe('gameStore.prestige', () => {
   beforeEach(() => {
@@ -195,5 +196,38 @@ describe('gameStore.doActivity', () => {
   it('fails for an unknown activity id', () => {
     const result = useGameStore.getState().doActivity('nope');
     expect(result.ok).toBe(false);
+  });
+
+  it('spends XP instead of cash for a recreation activity', () => {
+    useGameStore.setState((s) => ({ state: { ...s.state, xp: 100 } }));
+    const result = useGameStore.getState().doActivity('go_for_a_run');
+
+    expect(result.ok).toBe(true);
+    const state = useGameStore.getState().state;
+    expect(state.xp).toBe(100 - 15);
+    expect(state.cash).toBe(10_000);
+    expect(state.education).toBe(1);
+    expect(state.totalEducationSpend).toBe(0);
+    expect(state.activitiesCompleted.go_for_a_run).toBe(1);
+  });
+
+  it('fails without touching state when XP is insufficient', () => {
+    useGameStore.setState((s) => ({ state: { ...s.state, xp: 5 } }));
+    const result = useGameStore.getState().doActivity('go_for_a_run');
+    expect(result.ok).toBe(false);
+    expect(useGameStore.getState().state.xp).toBe(5);
+    expect(useGameStore.getState().state.education).toBe(0);
+  });
+
+  it('recomputes level immediately when spending XP drops the player below a level threshold', () => {
+    const xpForLevel2 = xpForNextLevel(1);
+    useGameStore.setState((s) => ({ state: { ...s.state, xp: xpForLevel2, level: 2 } }));
+
+    useGameStore.getState().doActivity('esports_tournament'); // costs 200 xp
+
+    const state = useGameStore.getState().state;
+    expect(state.xp).toBe(xpForLevel2 - 200);
+    expect(state.level).toBe(levelProgressFromXp(state.xp).level);
+    expect(state.level).toBe(1);
   });
 });

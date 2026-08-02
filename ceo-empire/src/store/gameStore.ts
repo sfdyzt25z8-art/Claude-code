@@ -26,6 +26,7 @@ import {
 } from '@/lib/gameEngine';
 import { advanceTime, MAX_OFFLINE_SECONDS } from '@/lib/gameTick';
 import { formatMoney } from '@/lib/format';
+import { levelProgressFromXp } from '@/data/levels';
 
 export interface GameNotification {
   id: string;
@@ -385,8 +386,29 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const { state } = get();
     const activity = getActivity(activityId);
     if (!activity) return { ok: false, error: 'Unknown activity.' };
-    if (state.cash < activity.cost) return { ok: false, error: 'Not enough cash.' };
 
+    if (activity.costType === 'xp') {
+      if (state.xp < activity.cost) return { ok: false, error: 'Not enough XP.' };
+      set((s) => {
+        const newXp = Math.max(0, s.state.xp - activity.cost);
+        const progress = levelProgressFromXp(newXp);
+        return {
+          state: {
+            ...s.state,
+            xp: newXp,
+            level: progress.level,
+            education: Math.min(100, s.state.education + activity.educationBoost),
+            activitiesCompleted: {
+              ...s.state.activitiesCompleted,
+              [activityId]: (s.state.activitiesCompleted[activityId] ?? 0) + 1,
+            },
+          },
+        };
+      });
+      return { ok: true };
+    }
+
+    if (state.cash < activity.cost) return { ok: false, error: 'Not enough cash.' };
     set((s) => ({
       state: {
         ...s.state,

@@ -181,7 +181,9 @@ export interface LifestyleItem {
   reputationBoost: number;
 }
 
-export type ActivityCategory = 'reading' | 'classes' | 'college';
+export type ActivityCategory = 'reading' | 'classes' | 'college' | 'recreation';
+
+export type ActivityCostType = 'cash' | 'xp';
 
 export interface ActivityItem {
   id: string;
@@ -190,6 +192,8 @@ export interface ActivityItem {
   icon: string;
   description: string;
   cost: number;
+  /** Which resource `cost` is paid from — dollars for reading/classes/college, XP for recreation. */
+  costType: ActivityCostType;
   /** Education gained (0-100 scale, capped) each time this activity is done. */
   educationBoost: number;
 }

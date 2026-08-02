@@ -3,20 +3,26 @@ import type { ActivityItem } from '@/types/game';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatNumber } from '@/lib/format';
 
 export function ActivityItemCard({
   activity,
   cash,
+  xp,
   completed,
   onDo,
 }: {
   activity: ActivityItem;
   cash: number;
+  xp: number;
   completed: number;
   onDo: () => void;
 }) {
-  const affordable = cash >= activity.cost;
+  const isXpCost = activity.costType === 'xp';
+  const balance = isXpCost ? xp : cash;
+  const affordable = balance >= activity.cost;
+  const costLabel = isXpCost ? `${formatNumber(activity.cost)} XP` : formatMoney(activity.cost);
+  const notEnoughLabel = isXpCost ? 'Not enough XP' : 'Not enough cash';
 
   return (
     <Card className="flex flex-col gap-3 p-5">
@@ -40,7 +46,7 @@ export function ActivityItemCard({
       <p className="text-xs leading-relaxed text-white/40">{activity.description}</p>
 
       <Button onClick={onDo} disabled={!affordable} className="w-full">
-        {affordable ? `Do it for ${formatMoney(activity.cost)}` : 'Not enough cash'}
+        {affordable ? `Do it for ${costLabel}` : notEnoughLabel}
       </Button>
     </Card>
   );
