@@ -68,6 +68,14 @@ describe('InvestmentsPage', () => {
     expect(screen.queryByText('Vertex Dynamics')).not.toBeInTheDocument();
   });
 
+  it('labels risk level per asset so a new investor knows what they are getting into', () => {
+    renderPage();
+    expect(within(assetCard('Gold')).getByText('Low Risk')).toBeInTheDocument();
+    expect(within(assetCard('Vertex Dynamics')).getByText('Medium Risk')).toBeInTheDocument();
+    expect(within(assetCard('MoonPup')).getByText('Very High Risk')).toBeInTheDocument();
+    expect(within(assetCard('MoonPup')).getByText(/lose a large chunk fast/)).toBeInTheDocument();
+  });
+
   it('buys the default $100 into an unlocked asset and reflects it in the store', async () => {
     const user = userEvent.setup();
     renderPage();
