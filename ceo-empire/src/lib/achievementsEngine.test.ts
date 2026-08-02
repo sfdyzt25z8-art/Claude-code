@@ -59,6 +59,7 @@ describe('checkNewAchievements', () => {
       hiredAt: 0,
       assignedBusinessId: null,
       dailySalary: 60,
+      skillLevel: 0,
     }));
     const result = checkNewAchievements(state, 200_000);
     // 25 employees also satisfies "first_hire" (>=1 employee), so all three fire together.

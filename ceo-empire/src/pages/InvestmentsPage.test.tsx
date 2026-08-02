@@ -134,4 +134,24 @@ describe('InvestmentsPage', () => {
     const card = assetCard('Vertex Dynamics');
     expect(within(card).getByRole('button', { name: 'Sell All' })).toBeDisabled();
   });
+
+  it('lets you invest in businesses as public stock, whether or not you personally own them', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole('button', { name: 'Businesses' }));
+
+    expect(screen.getByText('Lemonade Stand Inc.')).toBeInTheDocument();
+    expect(screen.getByText('Car Company Inc.')).toBeInTheDocument();
+    expect(screen.queryByText('Vertex Dynamics')).not.toBeInTheDocument();
+
+    const card = assetCard('Lemonade Stand Inc.');
+    await user.click(within(card).getByRole('button', { name: 'Buy' }));
+
+    expect(useGameStore.getState().state.cash).toBe(10_000 - 100);
+    expect(
+      useGameStore.getState().state.investments.find((i) => i.assetId === 'stock_lemonade_stand'),
+    ).toBeDefined();
+    // Not actually operating this business — just holding its stock.
+    expect(useGameStore.getState().state.businesses).toHaveLength(0);
+  });
 });

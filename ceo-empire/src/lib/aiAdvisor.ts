@@ -79,6 +79,26 @@ export function generateAdvice(state: GameState): AdviceItem[] {
     });
   }
 
+  // Neglected marketing/staff tip — flag the business bleeding the most to competitors.
+  let worstNeglect: { businessName: string; penalty: number } | null = null;
+  for (const business of state.businesses) {
+    const template = getBusinessTemplate(business.templateId);
+    if (!template) continue;
+    const fin = businessFinancials(business, state.employees, state.activeEvents);
+    if (fin.neglectPenalty > 0.5 && (!worstNeglect || fin.neglectPenalty > worstNeglect.penalty)) {
+      worstNeglect = { businessName: template.name, penalty: fin.neglectPenalty };
+    }
+  }
+  if (worstNeglect) {
+    items.push({
+      id: 'neglect_penalty',
+      icon: 'Megaphone',
+      title: `Your ${worstNeglect.businessName} is losing customers to competitors`,
+      detail: `No investment in Marketing or Staff Training is costing you ${formatMoney(worstNeglect.penalty, { compact: true })}/day. Put a level or two into either upgrade to win that back.`,
+      tone: 'warning',
+    });
+  }
+
   // Understaffed business tip.
   const understaffed = state.businesses.find(
     (b) => employeeCapacityUsed(b) < employeeCapacity(b),

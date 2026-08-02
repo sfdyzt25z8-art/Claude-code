@@ -4,8 +4,11 @@ import {
   STARTING_CASH,
   PRESTIGE_MIN_NET_WORTH,
   PRESTIGE_INCOME_BONUS_PER_LEVEL,
+  NEGLECT_RATE,
+  NEGLECT_RELIEF_LEVELS,
   createInitialState,
   businessFinancials,
+  neglectPenalty,
   computeEmpireTotals,
   businessAssetValue,
   investmentsValue,
@@ -29,6 +32,9 @@ function freshBusiness(overrides: Partial<OwnedBusiness> = {}): OwnedBusiness {
   };
 }
 
+/** Lemonade Stand, fully neglected: $150 base income, $40 base expense, $37.50 neglect penalty. */
+const LEMONADE_NEGLECT = 150 * NEGLECT_RATE;
+
 describe('createInitialState', () => {
   it('gives the player the starting cash and a clean slate', () => {
     const state = createInitialState();
@@ -47,22 +53,61 @@ describe('createInitialState', () => {
   });
 });
 
-describe('businessFinancials', () => {
-  it('returns the base template numbers for a fresh, unstaffed business', () => {
-    const fin = businessFinancials(freshBusiness(), []);
-    expect(fin.dailyIncome).toBeCloseTo(150);
-    expect(fin.dailyExpense).toBeCloseTo(40);
-    expect(fin.dailyProfit).toBeCloseTo(110);
+describe('neglectPenalty', () => {
+  it('applies the full penalty when Marketing and Staff are both untouched', () => {
+    expect(neglectPenalty(freshBusiness(), 150)).toBeCloseTo(150 * NEGLECT_RATE);
   });
 
-  it('increases income with an equipment upgrade', () => {
+  it('shrinks linearly as combined marketing+staff levels rise', () => {
+    const halfway = freshBusiness({
+      upgrades: { equipment: 0, marketing: NEGLECT_RELIEF_LEVELS / 2, staff: 0, technology: 0, buildings: 0 },
+    });
+    expect(neglectPenalty(halfway, 150)).toBeCloseTo(150 * NEGLECT_RATE * 0.5);
+  });
+
+  it('fully offsets once combined marketing+staff levels reach the relief threshold', () => {
+    const relieved = freshBusiness({
+      upgrades: { equipment: 0, marketing: NEGLECT_RELIEF_LEVELS, staff: 0, technology: 0, buildings: 0 },
+    });
+    expect(neglectPenalty(relieved, 150)).toBe(0);
+  });
+
+  it('never goes negative once relief exceeds the threshold', () => {
+    const overRelieved = freshBusiness({
+      upgrades: { equipment: 0, marketing: 5, staff: 5, technology: 0, buildings: 0 },
+    });
+    expect(neglectPenalty(overRelieved, 150)).toBe(0);
+  });
+});
+
+describe('businessFinancials', () => {
+  it('returns the base income and includes the full neglect penalty for a fresh, unstaffed business', () => {
+    const fin = businessFinancials(freshBusiness(), []);
+    expect(fin.dailyIncome).toBeCloseTo(150);
+    expect(fin.neglectPenalty).toBeCloseTo(LEMONADE_NEGLECT);
+    expect(fin.dailyExpense).toBeCloseTo(40 + LEMONADE_NEGLECT);
+    expect(fin.dailyProfit).toBeCloseTo(150 - (40 + LEMONADE_NEGLECT));
+  });
+
+  it('increases income with an equipment upgrade (no effect on the neglect penalty)', () => {
     const business = freshBusiness({
       upgrades: { equipment: 1, marketing: 0, staff: 0, technology: 0, buildings: 0 },
     });
     const fin = businessFinancials(business, []);
-    // equipment adds +8% income per level, no expense change
+    // equipment adds +8% income per level, no expense multiplier change
     expect(fin.dailyIncome).toBeCloseTo(150 * 1.08);
-    expect(fin.dailyExpense).toBeCloseTo(40);
+    expect(fin.dailyExpense).toBeCloseTo(40 + LEMONADE_NEGLECT);
+  });
+
+  it('marketing upgrades shrink the neglect penalty on top of their own income/expense effect', () => {
+    const business = freshBusiness({
+      upgrades: { equipment: 0, marketing: 2, staff: 0, technology: 0, buildings: 0 },
+    });
+    const fin = businessFinancials(business, []);
+    // marketing: +10% income, +2% expense per level; 2 levels of relief halves the neglect penalty.
+    expect(fin.dailyIncome).toBeCloseTo(150 * 1.2);
+    expect(fin.neglectPenalty).toBeCloseTo(LEMONADE_NEGLECT * 0.5);
+    expect(fin.dailyExpense).toBeCloseTo(40 * 1.04 + LEMONADE_NEGLECT * 0.5);
   });
 
   it('applies a suited employee boost plus their salary as an added expense', () => {
@@ -74,12 +119,29 @@ describe('businessFinancials', () => {
       hiredAt: 0,
       assignedBusinessId: 'biz_test',
       dailySalary: 60,
+      skillLevel: 0,
     };
     const fin = businessFinancials(business, [cashier]);
     // cashier incomeBoost 0.04, suited to 'food' -> 1.5x bonus => +6% income
     expect(fin.dailyIncome).toBeCloseTo(150 * 1.06);
-    // no expense multiplier change for cashier, but salary is added flat
-    expect(fin.dailyExpense).toBeCloseTo(40 + 60);
+    // no expense multiplier change for cashier, but salary and the neglect penalty are both added flat
+    expect(fin.dailyExpense).toBeCloseTo(40 + 60 + LEMONADE_NEGLECT);
+  });
+
+  it('boosts a suited employee further with their training/skill level', () => {
+    const business = freshBusiness({ employeeIds: ['emp_1'] });
+    const trainedCashier: Employee = {
+      id: 'emp_1',
+      type: 'cashier',
+      name: 'Trained Cashier',
+      hiredAt: 0,
+      assignedBusinessId: 'biz_test',
+      dailySalary: 60,
+      skillLevel: 2,
+    };
+    const fin = businessFinancials(business, [trainedCashier]);
+    // 2 skill levels = +30% bonus on top of the suited incomeBoost: 0.04 * 1.5 * 1.3
+    expect(fin.dailyIncome).toBeCloseTo(150 * (1 + 0.04 * 1.5 * 1.3));
   });
 
   it('ignores an employeeId that has no matching employee record', () => {
@@ -99,7 +161,7 @@ describe('businessFinancials', () => {
   it('falls back to zeroed financials for an unknown template id', () => {
     const business = freshBusiness({ templateId: 'does_not_exist' });
     const fin = businessFinancials(business, []);
-    expect(fin).toEqual({ baseIncome: 0, baseExpense: 0, dailyIncome: 0, dailyExpense: 0, dailyProfit: 0 });
+    expect(fin).toEqual({ baseIncome: 0, baseExpense: 0, dailyIncome: 0, dailyExpense: 0, dailyProfit: 0, neglectPenalty: 0 });
   });
 });
 
@@ -111,8 +173,9 @@ describe('computeEmpireTotals', () => {
       freshBusiness({ instanceId: 'b', templateId: 'coffee_shop' }),
     ];
     const totals = computeEmpireTotals(state);
+    const coffeeShopNeglect = 600 * NEGLECT_RATE;
     expect(totals.dailyIncome).toBeCloseTo(150 + 600);
-    expect(totals.dailyExpense).toBeCloseTo(40 + 200);
+    expect(totals.dailyExpense).toBeCloseTo(40 + LEMONADE_NEGLECT + 200 + coffeeShopNeglect);
     expect(totals.dailyProfit).toBeCloseTo(totals.dailyIncome - totals.dailyExpense);
   });
 
@@ -263,5 +326,22 @@ describe('hydrateState', () => {
     state.prestige = { count: 4 };
     const hydrated = hydrateState(state);
     expect(hydrated.prestige).toEqual({ count: 4 });
+  });
+
+  it('defaults lifestyle fields and per-employee skillLevel for an older save', () => {
+    const state = createInitialState();
+    const legacy = { ...state } as Omit<typeof state, 'totalLifestyleSpend' | 'lifestyleOwned'> & {
+      totalLifestyleSpend?: unknown;
+      lifestyleOwned?: unknown;
+    };
+    delete legacy.totalLifestyleSpend;
+    delete legacy.lifestyleOwned;
+    legacy.employees = [
+      { id: 'e1', type: 'cashier', name: 'Old Hire', hiredAt: 0, assignedBusinessId: null, dailySalary: 60 } as Employee,
+    ];
+    const hydrated = hydrateState(legacy as typeof state);
+    expect(hydrated.totalLifestyleSpend).toBe(0);
+    expect(hydrated.lifestyleOwned).toEqual({});
+    expect(hydrated.employees[0].skillLevel).toBe(0);
   });
 });

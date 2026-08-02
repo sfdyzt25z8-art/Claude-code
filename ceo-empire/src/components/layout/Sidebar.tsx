@@ -10,6 +10,7 @@ import {
   Crown,
   Award,
   X,
+  ShoppingBag,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
   { to: '/businesses', label: 'Businesses', icon: Building2 },
   { to: '/employees', label: 'Employees', icon: Users },
   { to: '/investments', label: 'Investments', icon: LineChart },
+  { to: '/lifestyle', label: 'Lifestyle', icon: ShoppingBag },
   { to: '/achievements', label: 'Achievements', icon: Award },
   { to: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { to: '/statistics', label: 'Statistics', icon: BarChart3 },

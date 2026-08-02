@@ -88,4 +88,26 @@ describe('BusinessesPage', () => {
     expect(incomeValue).toHaveTextContent('$162');
     expect(useGameStore.getState().state.businesses[0].upgrades.equipment).toBe(1);
   });
+
+  it('warns about the neglect penalty until Marketing or Staff Training is upgraded', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole('button', { name: /Buy for \$500/ }));
+    await user.click(await screen.findByRole('button', { name: 'Manage' }));
+    const dialog = await screen.findByRole('dialog');
+
+    // Fresh business, no Marketing/Staff investment yet — should show the warning.
+    expect(within(dialog).getByText(/Losing an extra/)).toBeInTheDocument();
+
+    const marketingRow = within(dialog)
+      .getByText('Marketing')
+      .closest<HTMLDivElement>('div.flex.items-center.gap-3')!;
+    // NEGLECT_RELIEF_LEVELS = 4, shared between Marketing and Staff — 4 Marketing
+    // levels alone are enough to fully offset the penalty.
+    for (let i = 0; i < 4; i++) {
+      await user.click(within(marketingRow).getByRole('button'));
+    }
+
+    expect(within(dialog).queryByText(/Losing an extra/)).not.toBeInTheDocument();
+  });
 });

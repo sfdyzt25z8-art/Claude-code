@@ -1,4 +1,16 @@
 import type { EmployeeTemplate, EmployeeType } from '@/types/game';
+import { MAX_EMPLOYEE_SKILL_LEVEL } from '@/types/game';
+
+/** Fractional boost added to an employee's income/expense contribution per training level. */
+export const EMPLOYEE_SKILL_BONUS_PER_LEVEL = 0.15;
+
+const TRAIN_COST_MULTIPLIERS = [0.5, 0.9, 1.4, 2.0, 2.7];
+
+/** Cost to train an employee from `currentLevel` to the next, or null once maxed. */
+export function trainEmployeeCost(baseHireCost: number, currentLevel: number): number | null {
+  if (currentLevel >= MAX_EMPLOYEE_SKILL_LEVEL) return null;
+  return Math.round(baseHireCost * TRAIN_COST_MULTIPLIERS[currentLevel]);
+}
 
 export const EMPLOYEE_TEMPLATES: Record<EmployeeType, EmployeeTemplate> = {
   cashier: {

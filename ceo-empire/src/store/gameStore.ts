@@ -9,10 +9,11 @@ import type {
 } from '@/types/game';
 import { getBusinessTemplate } from '@/data/businesses';
 import { upgradeCost } from '@/data/upgrades';
-import { EMPLOYEE_TEMPLATES, randomEmployeeName } from '@/data/employees';
+import { EMPLOYEE_TEMPLATES, randomEmployeeName, trainEmployeeCost } from '@/data/employees';
 import { getInvestmentAsset } from '@/data/investments';
 import { getEventTemplate } from '@/data/events';
 import { getAchievement } from '@/data/achievements';
+import { getLifestyleItem } from '@/data/lifestyle';
 import {
   createInitialState,
   employeeCapacity,
@@ -57,8 +58,10 @@ interface GameStoreState {
   hireEmployee: (type: EmployeeType, businessId?: string | null) => ActionResult;
   assignEmployee: (employeeId: string, businessId: string | null) => ActionResult;
   fireEmployee: (employeeId: string) => void;
+  trainEmployee: (employeeId: string) => ActionResult;
   buyInvestment: (assetId: string, dollarAmount: number) => ActionResult;
   sellInvestment: (assetId: string, quantity: number) => ActionResult;
+  buyLifestyleItem: (itemId: string) => ActionResult;
   claimDailyReward: () => ActionResult & {
     reward?: { cash: number; coins: number; xp: number; streak: number };
   };
@@ -222,6 +225,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       hiredAt: Date.now(),
       assignedBusinessId: businessId ?? null,
       dailySalary: salary,
+      skillLevel: 0,
     };
 
     set((s) => ({
@@ -286,6 +290,27 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }));
   },
 
+  trainEmployee: (employeeId) => {
+    const { state } = get();
+    const employee = state.employees.find((e) => e.id === employeeId);
+    if (!employee) return { ok: false, error: 'Employee not found.' };
+    const template = EMPLOYEE_TEMPLATES[employee.type];
+    const cost = trainEmployeeCost(template.baseHireCost, employee.skillLevel ?? 0);
+    if (cost === null) return { ok: false, error: 'Already at max training level.' };
+    if (state.cash < cost) return { ok: false, error: 'Not enough cash.' };
+
+    set((s) => ({
+      state: {
+        ...s.state,
+        cash: s.state.cash - cost,
+        employees: s.state.employees.map((e) =>
+          e.id === employeeId ? { ...e, skillLevel: (e.skillLevel ?? 0) + 1 } : e,
+        ),
+      },
+    }));
+    return { ok: true };
+  },
+
   buyInvestment: (assetId, dollarAmount) => {
     const { state } = get();
     const asset = getInvestmentAsset(assetId);
@@ -330,6 +355,27 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
           : s.state.investments.map((i) => (i.assetId === assetId ? { ...i, quantity: remaining } : i));
       return { state: { ...s.state, cash: s.state.cash + proceeds, investments } };
     });
+    return { ok: true };
+  },
+
+  buyLifestyleItem: (itemId) => {
+    const { state } = get();
+    const item = getLifestyleItem(itemId);
+    if (!item) return { ok: false, error: 'Unknown item.' };
+    if (state.cash < item.cost) return { ok: false, error: 'Not enough cash.' };
+
+    set((s) => ({
+      state: {
+        ...s.state,
+        cash: s.state.cash - item.cost,
+        reputation: Math.min(100, s.state.reputation + item.reputationBoost),
+        totalLifestyleSpend: s.state.totalLifestyleSpend + item.cost,
+        lifestyleOwned: {
+          ...s.state.lifestyleOwned,
+          [itemId]: (s.state.lifestyleOwned[itemId] ?? 0) + 1,
+        },
+      },
+    }));
     return { ok: true };
   },
 

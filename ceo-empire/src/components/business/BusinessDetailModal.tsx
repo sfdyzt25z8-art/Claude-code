@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, ArrowDownRight, UserMinus } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, UserMinus, AlertTriangle } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -84,6 +84,16 @@ export function BusinessDetailModal({
             </div>
           </div>
         </div>
+
+        {fin.neglectPenalty > 0.5 && (
+          <div className="flex items-start gap-2.5 rounded-xl border border-red-500/25 bg-red-500/[0.06] p-3 text-xs text-red-300">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              Losing an extra <span className="font-semibold">{formatMoney(fin.neglectPenalty, { compact: true })}/day</span> to
+              competitors — you haven't invested in Marketing or Staff Training. Upgrade either one below to win it back.
+            </p>
+          </div>
+        )}
 
         <div>
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/40">Upgrades</h3>

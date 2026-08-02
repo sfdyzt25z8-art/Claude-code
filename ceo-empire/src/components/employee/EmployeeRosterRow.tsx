@@ -1,7 +1,8 @@
-import { UserMinus } from 'lucide-react';
+import { UserMinus, GraduationCap } from 'lucide-react';
 import type { Employee, GameState } from '@/types/game';
+import { MAX_EMPLOYEE_SKILL_LEVEL } from '@/types/game';
 import { Icon } from '@/components/ui/Icon';
-import { EMPLOYEE_TEMPLATES } from '@/data/employees';
+import { EMPLOYEE_TEMPLATES, trainEmployeeCost } from '@/data/employees';
 import { getBusinessTemplate } from '@/data/businesses';
 import { employeeCapacity, employeeCapacityUsed } from '@/lib/gameEngine';
 import { formatMoney } from '@/lib/format';
@@ -11,17 +12,23 @@ export function EmployeeRosterRow({
   state,
   onAssign,
   onFire,
+  onTrain,
 }: {
   employee: Employee;
   state: GameState;
   onAssign: (businessId: string | null) => void;
   onFire: () => void;
+  onTrain: () => void;
 }) {
   const def = EMPLOYEE_TEMPLATES[employee.type];
   const availableBusinesses = state.businesses.filter((b) => {
     if (b.instanceId === employee.assignedBusinessId) return true;
     return employeeCapacityUsed(b) < employeeCapacity(b);
   });
+  const skillLevel = employee.skillLevel ?? 0;
+  const trainCost = trainEmployeeCost(def.baseHireCost, skillLevel);
+  const maxed = trainCost === null;
+  const affordable = trainCost !== null && state.cash >= trainCost;
 
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
@@ -31,6 +38,14 @@ export function EmployeeRosterRow({
       <div className="min-w-[120px] flex-1">
         <p className="text-xs font-medium text-white">{employee.name}</p>
         <p className="text-[11px] text-white/40">{def.name} &middot; {formatMoney(employee.dailySalary)}/day</p>
+        <div className="mt-1 flex items-center gap-1">
+          {Array.from({ length: MAX_EMPLOYEE_SKILL_LEVEL }).map((_, i) => (
+            <span
+              key={i}
+              className={`h-1 w-3 rounded-full ${i < skillLevel ? 'bg-gold-500' : 'bg-white/10'}`}
+            />
+          ))}
+        </div>
       </div>
 
       <select
@@ -49,6 +64,17 @@ export function EmployeeRosterRow({
           );
         })}
       </select>
+
+      <button
+        onClick={onTrain}
+        disabled={maxed || !affordable}
+        title={maxed ? 'Fully trained' : `Train for ${formatMoney(trainCost ?? 0)}`}
+        aria-label={maxed ? `${employee.name} is fully trained` : `Train ${employee.name} for ${formatMoney(trainCost ?? 0)}`}
+        className="flex items-center gap-1.5 rounded-lg border border-gold-500/20 bg-gold-500/5 px-2.5 py-1.5 text-[11px] font-medium text-gold-300 hover:bg-gold-500/10 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-gold-500/5"
+      >
+        <GraduationCap className="h-3.5 w-3.5" />
+        {maxed ? 'Max' : formatMoney(trainCost ?? 0, { compact: true })}
+      </button>
 
       <button
         onClick={onFire}
