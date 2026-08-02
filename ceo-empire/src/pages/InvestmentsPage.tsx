@@ -11,6 +11,7 @@ import clsx from 'clsx';
 
 const CATEGORIES: { id: InvestmentCategory | 'all'; label: string }[] = [
   { id: 'all', label: 'All' },
+  { id: 'business', label: 'Businesses' },
   { id: 'stock', label: 'Stocks' },
   { id: 'real_estate', label: 'Real Estate' },
   { id: 'crypto', label: 'Crypto' },
@@ -54,7 +55,7 @@ export default function InvestmentsPage() {
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold text-white sm:text-3xl">Investments</h1>
-        <p className="text-sm text-white/40">Diversify into stocks, real estate, crypto, startups, and commodities.</p>
+        <p className="text-sm text-white/40">Diversify into businesses, stocks, real estate, crypto, startups, and commodities.</p>
       </div>
 
       <Card className="flex flex-wrap items-center justify-between gap-4 p-5">

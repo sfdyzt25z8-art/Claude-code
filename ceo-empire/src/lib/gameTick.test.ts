@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInitialState, GAME_DAY_SECONDS } from './gameEngine';
+import { createInitialState, GAME_DAY_SECONDS, NEGLECT_RATE } from './gameEngine';
 import { advanceTime } from './gameTick';
 import { xpForNextLevel } from '@/data/levels';
 import type { OwnedBusiness } from '@/types/game';
@@ -25,10 +25,11 @@ describe('advanceTime', () => {
   it('accrues cash proportional to daily profit and elapsed time', () => {
     const state = createInitialState();
     state.businesses = [lemonadeStand()];
-    // lemonade stand: $150 income - $40 expense = $110/day profit
+    // lemonade stand: $150 income - $40 expense - $37.50 neglect penalty (no marketing/staff) = $72.50/day profit
+    const dailyProfit = 150 - (40 + 150 * NEGLECT_RATE);
     const elapsed = GAME_DAY_SECONDS / 2; // half a day
     const result = advanceTime(state, elapsed, state.lastTickAt + elapsed * 1000);
-    expect(result.state.cash).toBeCloseTo(state.cash + 55, 5);
+    expect(result.state.cash).toBeCloseTo(state.cash + dailyProfit / 2, 5);
   });
 
   it('does not roll the day forward for a small elapsed time', () => {

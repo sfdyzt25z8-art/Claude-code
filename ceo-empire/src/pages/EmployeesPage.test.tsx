@@ -132,4 +132,33 @@ describe('EmployeesPage', () => {
     expect(screen.queryByText(employeeName)).not.toBeInTheDocument();
     expect(screen.getByText(/haven't hired anyone yet/i)).toBeInTheDocument();
   });
+
+  it('trains an employee, raising their skill level and deducting cash', async () => {
+    useGameStore.getState().hireEmployee('cashier', null);
+    const employeeName = useGameStore.getState().state.employees[0].name;
+    const cashAfterHire = useGameStore.getState().state.cash;
+
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole('button', { name: `Train ${employeeName} for $150` }));
+
+    expect(useGameStore.getState().state.employees[0].skillLevel).toBe(1);
+    expect(useGameStore.getState().state.cash).toBe(cashAfterHire - 150);
+  });
+
+  it('disables training once cash runs short, without changing the store', async () => {
+    useGameStore.getState().hireEmployee('cashier', null);
+    const employeeName = useGameStore.getState().state.employees[0].name;
+    useGameStore.setState((s) => ({ state: { ...s.state, cash: 0 } }));
+
+    const user = userEvent.setup();
+    renderPage();
+
+    const trainButton = screen.getByRole('button', { name: `Train ${employeeName} for $150` });
+    expect(trainButton).toBeDisabled();
+
+    await user.click(trainButton);
+    expect(useGameStore.getState().state.employees[0].skillLevel).toBe(0);
+  });
 });

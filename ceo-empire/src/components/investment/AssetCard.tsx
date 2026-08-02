@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { AssetSparkline } from './AssetSparkline';
 import { formatMoney, formatPercent } from '@/lib/format';
+import { getRiskLevel, RISK_LEVEL_STYLES } from '@/lib/risk';
 
 export function AssetCard({
   asset,
@@ -26,6 +27,8 @@ export function AssetCard({
   const holdingValue = holding ? holding.quantity * price : 0;
 
   const dollarAmount = Math.max(0, Number(amount) || 0);
+  const riskLevel = getRiskLevel(asset.volatility);
+  const riskStyle = RISK_LEVEL_STYLES[riskLevel];
 
   return (
     <Card className="relative flex flex-col gap-3 p-5">
@@ -47,6 +50,11 @@ export function AssetCard({
           </p>
         </div>
       </div>
+
+      <span className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${riskStyle.badge}`}>
+        {riskLevel} Risk
+      </span>
+      <p className="-mt-2 text-[11px] leading-relaxed text-white/35">{riskStyle.description}</p>
 
       <AssetSparkline history={history} positive={changePct >= 0} />
 

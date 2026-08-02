@@ -24,6 +24,7 @@ export const UPGRADE_TYPES: UpgradeType[] = [
 ];
 
 export const MAX_UPGRADE_LEVEL = 5;
+export const MAX_EMPLOYEE_SKILL_LEVEL = 5;
 
 export interface BusinessTemplate {
   id: string;
@@ -73,9 +74,17 @@ export interface Employee {
   hiredAt: number;
   assignedBusinessId: string | null;
   dailySalary: number;
+  /** Training level (0-MAX_EMPLOYEE_SKILL_LEVEL) — boosts their income/expense contribution. */
+  skillLevel: number;
 }
 
-export type InvestmentCategory = 'stock' | 'real_estate' | 'crypto' | 'startup' | 'commodity';
+export type InvestmentCategory =
+  | 'stock'
+  | 'real_estate'
+  | 'crypto'
+  | 'startup'
+  | 'commodity'
+  | 'business';
 
 export interface InvestmentAsset {
   id: string;
@@ -153,6 +162,19 @@ export interface PrestigeState {
   count: number;
 }
 
+export type LifestyleCategory = 'clothing' | 'accessories' | 'jewelry' | 'land' | 'vehicles';
+
+export interface LifestyleItem {
+  id: string;
+  name: string;
+  category: LifestyleCategory;
+  icon: string;
+  description: string;
+  cost: number;
+  /** Reputation gained (0-100 scale, capped) each time this item is bought. */
+  reputationBoost: number;
+}
+
 export interface GameState {
   cash: number;
   coins: number;
@@ -177,6 +199,10 @@ export interface GameState {
   dailyReward: DailyRewardState;
   prestige: PrestigeState;
   settings: GameSettings;
+  /** Cumulative cash spent on lifestyle/shopping purchases. */
+  totalLifestyleSpend: number;
+  /** Lifestyle item id -> number of times purchased. */
+  lifestyleOwned: Record<string, number>;
 }
 
 export interface PlayerProfile {

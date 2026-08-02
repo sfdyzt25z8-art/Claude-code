@@ -8,7 +8,7 @@ import type {
 import { UPGRADE_TYPES } from '@/types/game';
 import { getBusinessTemplate } from '@/data/businesses';
 import { UPGRADE_DEFINITIONS } from '@/data/upgrades';
-import { EMPLOYEE_TEMPLATES } from '@/data/employees';
+import { EMPLOYEE_TEMPLATES, EMPLOYEE_SKILL_BONUS_PER_LEVEL } from '@/data/employees';
 import { getEventTemplate } from '@/data/events';
 import { INVESTMENT_ASSETS } from '@/data/investments';
 
@@ -59,6 +59,8 @@ export function createInitialState(): GameState {
     dailyReward: { lastClaimedAt: null, streak: 0 },
     prestige: { count: 0 },
     settings: DEFAULT_SETTINGS,
+    totalLifestyleSpend: 0,
+    lifestyleOwned: {},
   };
 }
 
@@ -69,6 +71,9 @@ export function hydrateState(raw: GameState): GameState {
     coins: raw.coins ?? 0,
     prestige: raw.prestige ?? { count: 0 },
     settings: { ...DEFAULT_SETTINGS, ...raw.settings },
+    totalLifestyleSpend: raw.totalLifestyleSpend ?? 0,
+    lifestyleOwned: raw.lifestyleOwned ?? {},
+    employees: raw.employees.map((e) => ({ ...e, skillLevel: e.skillLevel ?? 0 })),
   };
 }
 
@@ -132,11 +137,29 @@ function employeeMultipliers(
     const def = EMPLOYEE_TEMPLATES[emp.type];
     const suited = template ? def.suitedCategories.includes(template.category) : false;
     const suitBonus = suited ? 1.5 : 1;
-    income += def.incomeBoost * suitBonus;
-    expense += def.expenseReduction * suitBonus;
+    const skillBonus = 1 + (emp.skillLevel ?? 0) * EMPLOYEE_SKILL_BONUS_PER_LEVEL;
+    income += def.incomeBoost * suitBonus * skillBonus;
+    expense += def.expenseReduction * suitBonus * skillBonus;
     salaries += emp.dailySalary;
   }
   return { income, expense: Math.max(0.1, expense), salaries };
+}
+
+/** Fraction of base income lost per day when marketing+staff are both fully neglected. */
+export const NEGLECT_RATE = 0.25;
+/** Combined marketing+staff upgrade levels needed to fully offset the neglect penalty. */
+export const NEGLECT_RELIEF_LEVELS = 4;
+
+/**
+ * A business that never invests in Marketing or Staff Training bleeds customers to
+ * competitors — this returns the resulting extra daily expense. Putting levels into
+ * either upgrade (they combine) shrinks it linearly down to zero.
+ */
+export function neglectPenalty(business: OwnedBusiness, baseDailyIncome: number): number {
+  const marketing = business.upgrades.marketing ?? 0;
+  const staff = business.upgrades.staff ?? 0;
+  const factor = Math.max(0, 1 - (marketing + staff) / NEGLECT_RELIEF_LEVELS);
+  return baseDailyIncome * NEGLECT_RATE * factor;
 }
 
 export interface BusinessFinancials {
@@ -145,6 +168,7 @@ export interface BusinessFinancials {
   dailyIncome: number;
   dailyExpense: number;
   dailyProfit: number;
+  neglectPenalty: number;
 }
 
 export function businessFinancials(
@@ -154,22 +178,24 @@ export function businessFinancials(
 ): BusinessFinancials {
   const template = getBusinessTemplate(business.templateId);
   if (!template) {
-    return { baseIncome: 0, baseExpense: 0, dailyIncome: 0, dailyExpense: 0, dailyProfit: 0 };
+    return { baseIncome: 0, baseExpense: 0, dailyIncome: 0, dailyExpense: 0, dailyProfit: 0, neglectPenalty: 0 };
   }
   const up = upgradeMultipliers(business);
   const emp = employeeMultipliers(business, employees);
   const eventIncomeMult = activeEventMultiplier(activeEvents, 'all_income');
   const eventExpenseMult = activeEventMultiplier(activeEvents, 'all_expenses');
+  const neglect = neglectPenalty(business, template.baseDailyIncome);
 
   const dailyIncome = template.baseDailyIncome * up.income * emp.income * eventIncomeMult;
   const dailyExpense =
-    template.baseDailyExpense * up.expense * emp.expense * eventExpenseMult + emp.salaries;
+    template.baseDailyExpense * up.expense * emp.expense * eventExpenseMult + emp.salaries + neglect;
 
   return {
     baseIncome: template.baseDailyIncome,
     baseExpense: template.baseDailyExpense,
     dailyIncome,
     dailyExpense,
+    neglectPenalty: neglect,
     dailyProfit: dailyIncome - dailyExpense,
   };
 }

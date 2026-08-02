@@ -51,6 +51,10 @@ import {
   Infinity as InfinityIcon,
   PiggyBank,
   Footprints,
+  ShoppingBag,
+  Watch,
+  Coins,
+  GraduationCap,
   type LucideProps,
 } from 'lucide-react';
 
@@ -107,6 +111,10 @@ const ICONS: Record<string, React.ComponentType<LucideProps>> = {
   Infinity: InfinityIcon,
   PiggyBank,
   Footprints,
+  ShoppingBag,
+  Watch,
+  Coins,
+  GraduationCap,
 };
 
 interface IconProps extends LucideProps {

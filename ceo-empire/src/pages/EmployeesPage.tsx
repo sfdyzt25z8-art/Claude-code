@@ -12,6 +12,7 @@ export default function EmployeesPage() {
   const hireEmployee = useGameStore((s) => s.hireEmployee);
   const assignEmployee = useGameStore((s) => s.assignEmployee);
   const fireEmployee = useGameStore((s) => s.fireEmployee);
+  const trainEmployee = useGameStore((s) => s.trainEmployee);
   const [error, setError] = useState<string | null>(null);
 
   function handleHire(type: EmployeeType, businessId: string | null) {
@@ -31,6 +32,17 @@ export default function EmployeesPage() {
     if (!result.ok) {
       playSound('error');
       setError(result.error ?? 'Could not reassign employee.');
+    }
+  }
+
+  function handleTrain(employeeId: string) {
+    setError(null);
+    const result = trainEmployee(employeeId);
+    if (result.ok) {
+      playSound('upgrade');
+    } else {
+      playSound('error');
+      setError(result.error ?? 'Could not train employee.');
     }
   }
 
@@ -79,6 +91,7 @@ export default function EmployeesPage() {
                   state={state}
                   onAssign={(businessId) => handleAssign(emp.id, businessId)}
                   onFire={() => fireEmployee(emp.id)}
+                  onTrain={() => handleTrain(emp.id)}
                 />
               ))}
             </div>
