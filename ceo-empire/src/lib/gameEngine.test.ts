@@ -85,10 +85,10 @@ describe('neglectPenalty', () => {
 describe('businessFinancials', () => {
   it('returns the base income and includes the full neglect penalty for a fresh, unstaffed business', () => {
     const fin = businessFinancials(freshBusiness(), []);
-    expect(fin.hourlyIncome).toBeCloseTo(150);
+    expect(fin.dailyIncome).toBeCloseTo(150);
     expect(fin.neglectPenalty).toBeCloseTo(LEMONADE_NEGLECT);
-    expect(fin.hourlyExpense).toBeCloseTo(40 + LEMONADE_NEGLECT);
-    expect(fin.hourlyProfit).toBeCloseTo(150 - (40 + LEMONADE_NEGLECT));
+    expect(fin.dailyExpense).toBeCloseTo(40 + LEMONADE_NEGLECT);
+    expect(fin.dailyProfit).toBeCloseTo(150 - (40 + LEMONADE_NEGLECT));
   });
 
   it('increases income with an equipment upgrade (no effect on the neglect penalty)', () => {
@@ -97,8 +97,8 @@ describe('businessFinancials', () => {
     });
     const fin = businessFinancials(business, []);
     // equipment adds +8% income per level, no expense multiplier change
-    expect(fin.hourlyIncome).toBeCloseTo(150 * 1.08);
-    expect(fin.hourlyExpense).toBeCloseTo(40 + LEMONADE_NEGLECT);
+    expect(fin.dailyIncome).toBeCloseTo(150 * 1.08);
+    expect(fin.dailyExpense).toBeCloseTo(40 + LEMONADE_NEGLECT);
   });
 
   it('marketing upgrades shrink the neglect penalty on top of their own income/expense effect', () => {
@@ -107,9 +107,9 @@ describe('businessFinancials', () => {
     });
     const fin = businessFinancials(business, []);
     // marketing: +10% income, +2% expense per level; 2 levels of relief halves the neglect penalty.
-    expect(fin.hourlyIncome).toBeCloseTo(150 * 1.2);
+    expect(fin.dailyIncome).toBeCloseTo(150 * 1.2);
     expect(fin.neglectPenalty).toBeCloseTo(LEMONADE_NEGLECT * 0.5);
-    expect(fin.hourlyExpense).toBeCloseTo(40 * 1.04 + LEMONADE_NEGLECT * 0.5);
+    expect(fin.dailyExpense).toBeCloseTo(40 * 1.04 + LEMONADE_NEGLECT * 0.5);
   });
 
   it('applies a suited employee boost plus their salary as an added expense', () => {
@@ -120,14 +120,14 @@ describe('businessFinancials', () => {
       name: 'Test Cashier',
       hiredAt: 0,
       assignedBusinessId: 'biz_test',
-      hourlySalary: 60,
+      dailySalary: 60,
       skillLevel: 0,
     };
     const fin = businessFinancials(business, [cashier]);
     // cashier incomeBoost 0.04, suited to 'food' -> 1.5x bonus => +6% income
-    expect(fin.hourlyIncome).toBeCloseTo(150 * 1.06);
+    expect(fin.dailyIncome).toBeCloseTo(150 * 1.06);
     // no expense multiplier change for cashier, but salary and the neglect penalty are both added flat
-    expect(fin.hourlyExpense).toBeCloseTo(40 + 60 + LEMONADE_NEGLECT);
+    expect(fin.dailyExpense).toBeCloseTo(40 + 60 + LEMONADE_NEGLECT);
   });
 
   it('boosts a suited employee further with their training/skill level', () => {
@@ -138,18 +138,18 @@ describe('businessFinancials', () => {
       name: 'Trained Cashier',
       hiredAt: 0,
       assignedBusinessId: 'biz_test',
-      hourlySalary: 60,
+      dailySalary: 60,
       skillLevel: 2,
     };
     const fin = businessFinancials(business, [trainedCashier]);
     // 2 skill levels = +30% bonus on top of the suited incomeBoost: 0.04 * 1.5 * 1.3
-    expect(fin.hourlyIncome).toBeCloseTo(150 * (1 + 0.04 * 1.5 * 1.3));
+    expect(fin.dailyIncome).toBeCloseTo(150 * (1 + 0.04 * 1.5 * 1.3));
   });
 
   it('ignores an employeeId that has no matching employee record', () => {
     const business = freshBusiness({ employeeIds: ['ghost'] });
     const fin = businessFinancials(business, []);
-    expect(fin.hourlyIncome).toBeCloseTo(150);
+    expect(fin.dailyIncome).toBeCloseTo(150);
   });
 
   it('multiplies income/expenses by active event effects', () => {
@@ -157,13 +157,13 @@ describe('businessFinancials', () => {
     const fin = businessFinancials(business, [], [
       { id: 'e1', templateId: 'economic_boom', startedOnDay: 1, endsOnDay: 4 },
     ]);
-    expect(fin.hourlyIncome).toBeCloseTo(150 * 1.25);
+    expect(fin.dailyIncome).toBeCloseTo(150 * 1.25);
   });
 
   it('falls back to zeroed financials for an unknown template id', () => {
     const business = freshBusiness({ templateId: 'does_not_exist' });
     const fin = businessFinancials(business, []);
-    expect(fin).toEqual({ baseIncome: 0, baseExpense: 0, hourlyIncome: 0, hourlyExpense: 0, hourlyProfit: 0, neglectPenalty: 0 });
+    expect(fin).toEqual({ baseIncome: 0, baseExpense: 0, dailyIncome: 0, dailyExpense: 0, dailyProfit: 0, neglectPenalty: 0 });
   });
 });
 
@@ -176,15 +176,15 @@ describe('computeEmpireTotals', () => {
     ];
     const totals = computeEmpireTotals(state);
     const coffeeShopNeglect = 600 * NEGLECT_RATE;
-    expect(totals.hourlyIncome).toBeCloseTo(150 + 600);
-    expect(totals.hourlyExpense).toBeCloseTo(40 + LEMONADE_NEGLECT + 200 + coffeeShopNeglect);
-    expect(totals.hourlyProfit).toBeCloseTo(totals.hourlyIncome - totals.hourlyExpense);
+    expect(totals.dailyIncome).toBeCloseTo(150 + 600);
+    expect(totals.dailyExpense).toBeCloseTo(40 + LEMONADE_NEGLECT + 200 + coffeeShopNeglect);
+    expect(totals.dailyProfit).toBeCloseTo(totals.dailyIncome - totals.dailyExpense);
   });
 
   it('returns zeros when no businesses are owned', () => {
     const state = createInitialState();
     const totals = computeEmpireTotals(state);
-    expect(totals).toEqual({ hourlyIncome: 0, hourlyExpense: 0, hourlyProfit: 0 });
+    expect(totals).toEqual({ dailyIncome: 0, dailyExpense: 0, dailyProfit: 0 });
   });
 });
 
@@ -272,10 +272,10 @@ describe('prestige', () => {
     state.prestige = { count: 2 };
     const totals = computeEmpireTotals(state);
     const mult = prestigeMultiplier(state);
-    expect(totals.hourlyIncome).toBeCloseTo(150 * mult);
+    expect(totals.dailyIncome).toBeCloseTo(150 * mult);
     // The per-business breakdown stays at base numbers, unaffected by prestige.
     const fin = businessFinancials(state.businesses[0], []);
-    expect(fin.hourlyIncome).toBeCloseTo(150);
+    expect(fin.dailyIncome).toBeCloseTo(150);
   });
 
   it('resets cash, businesses, level, and day, while preserving achievements and settings', () => {
@@ -339,7 +339,7 @@ describe('hydrateState', () => {
     delete legacy.totalLifestyleSpend;
     delete legacy.lifestyleOwned;
     legacy.employees = [
-      { id: 'e1', type: 'cashier', name: 'Old Hire', hiredAt: 0, assignedBusinessId: null, hourlySalary: 60 } as Employee,
+      { id: 'e1', type: 'cashier', name: 'Old Hire', hiredAt: 0, assignedBusinessId: null, dailySalary: 60 } as Employee,
     ];
     const hydrated = hydrateState(legacy as typeof state);
     expect(hydrated.totalLifestyleSpend).toBe(0);
@@ -363,15 +363,15 @@ describe('hydrateState', () => {
     expect(hydrated.activitiesCompleted).toEqual({});
   });
 
-  it('migrates a pre-hourly-rename employee`s dailySalary into hourlySalary', () => {
+  it('migrates an employee hired during the hourly-pacing window (hourlySalary) back into dailySalary', () => {
     const state = createInitialState();
-    const legacyEmployee = { id: 'e1', type: 'cashier', name: 'Old Hire', hiredAt: 0, assignedBusinessId: null, skillLevel: 0, dailySalary: 60 };
+    const legacyEmployee = { id: 'e1', type: 'cashier', name: 'Old Hire', hiredAt: 0, assignedBusinessId: null, skillLevel: 0, hourlySalary: 60 };
     const legacy = { ...state, employees: [legacyEmployee] } as unknown as typeof state;
     const hydrated = hydrateState(legacy);
-    expect(hydrated.employees[0].hourlySalary).toBe(60);
+    expect(hydrated.employees[0].dailySalary).toBe(60);
   });
 
-  it('recovers NaN-poisoned cash (from the legacy dailySalary bug) using the last finite net worth history point', () => {
+  it('recovers NaN-poisoned cash using the last finite net worth history point', () => {
     const state = createInitialState();
     const legacy = {
       ...state,

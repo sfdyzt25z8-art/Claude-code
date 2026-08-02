@@ -1,5 +1,5 @@
 import type { ActiveEvent, GameState, NetWorthPoint } from '@/types/game';
-import { GAME_DAY_SECONDS, GAME_HOUR_SECONDS, computeEmpireTotals, computeNetWorth } from '@/lib/gameEngine';
+import { GAME_DAY_SECONDS, computeEmpireTotals, computeNetWorth } from '@/lib/gameEngine';
 import { simulateMarketTick } from '@/lib/market';
 import { pruneExpiredEvents, rollDailyEvent } from '@/lib/eventsEngine';
 import { getEventTemplate } from '@/data/events';
@@ -9,8 +9,12 @@ import { levelProgressFromXp } from '@/data/levels';
 export const MAX_OFFLINE_SECONDS = 12 * 60 * 60;
 const MAX_DAYS_ROLLED_AT_ONCE = 8;
 const NET_WORTH_HISTORY_LIMIT = 150;
-/** $ of net worth growth needed to earn 1 XP from passive play. */
-export const XP_PER_NET_WORTH_GROWTH = 20;
+/**
+ * $ of net worth growth needed to earn 1 XP from passive play. Business income reverted
+ * from hourly back to daily pacing (24x slower net worth growth per real second), so this
+ * is scaled down by the same factor to keep the real-time XP earn rate unchanged.
+ */
+export const XP_PER_NET_WORTH_GROWTH = 20 / 24;
 
 export interface AdvanceResult {
   state: GameState;
@@ -32,17 +36,15 @@ export function advanceTime(prev: GameState, elapsedSeconds: number, now: number
 
   const netWorthBefore = computeNetWorth(prev);
   const totals = computeEmpireTotals(prev);
-  // Business income/expense are hourly figures — paced off the (much shorter) in-game
-  // hour rather than the in-game day used for calendar/event pacing below.
-  const hourFraction = elapsedSeconds / GAME_HOUR_SECONDS;
-  const cashGain = totals.hourlyProfit * hourFraction;
+  const dayFraction = elapsedSeconds / GAME_DAY_SECONDS;
+  const cashGain = totals.dailyProfit * dayFraction;
   const market = simulateMarketTick(prev, elapsedSeconds);
 
   let state: GameState = {
     ...prev,
     cash: prev.cash + cashGain,
-    totalIncomeEarned: prev.totalIncomeEarned + Math.max(0, totals.hourlyIncome * hourFraction),
-    totalExpensesPaid: prev.totalExpensesPaid + Math.max(0, totals.hourlyExpense * hourFraction),
+    totalIncomeEarned: prev.totalIncomeEarned + Math.max(0, totals.dailyIncome * dayFraction),
+    totalExpensesPaid: prev.totalExpensesPaid + Math.max(0, totals.dailyExpense * dayFraction),
     marketPrices: market.marketPrices,
     priceHistory: market.priceHistory,
     lastTickAt: now,

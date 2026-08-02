@@ -74,8 +74,8 @@ describe('generateAdvice', () => {
     const state = createInitialState();
     state.businesses = [freshBusiness({ employeeIds: ['e1', 'e2'] })]; // capacity 2, both filled
     state.employees = [
-      { id: 'e1', type: 'cashier', name: 'A', hiredAt: 0, assignedBusinessId: 'biz_test', hourlySalary: 60, skillLevel: 0 },
-      { id: 'e2', type: 'cashier', name: 'B', hiredAt: 0, assignedBusinessId: 'biz_test', hourlySalary: 60, skillLevel: 0 },
+      { id: 'e1', type: 'cashier', name: 'A', hiredAt: 0, assignedBusinessId: 'biz_test', dailySalary: 60, skillLevel: 0 },
+      { id: 'e2', type: 'cashier', name: 'B', hiredAt: 0, assignedBusinessId: 'biz_test', dailySalary: 60, skillLevel: 0 },
     ];
     const advice = generateAdvice(state);
     expect(advice.find((a) => a.id === 'hire_tip')).toBeUndefined();
@@ -102,7 +102,7 @@ describe('generateAdvice', () => {
     // easiest reliable way to force a loss is heavy employee salaries via many hires.
     state.businesses = [freshBusiness({ employeeIds: ['e1'] })];
     state.employees = [
-      { id: 'e1', type: 'developer', name: 'Costly Dev', hiredAt: 0, assignedBusinessId: 'biz_test', hourlySalary: 10_000, skillLevel: 0 },
+      { id: 'e1', type: 'developer', name: 'Costly Dev', hiredAt: 0, assignedBusinessId: 'biz_test', dailySalary: 10_000, skillLevel: 0 },
     ];
     const advice = generateAdvice(state);
     expect(advice.find((a) => a.id === 'negative_profit')).toBeDefined();
@@ -119,7 +119,7 @@ describe('generateAdvice', () => {
     const state = createInitialState();
     state.businesses = [freshBusiness({ employeeIds: ['e1'] })];
     state.employees = [
-      { id: 'e1', type: 'developer', name: 'Costly Dev', hiredAt: 0, assignedBusinessId: 'biz_test', hourlySalary: 10_000, skillLevel: 0 },
+      { id: 'e1', type: 'developer', name: 'Costly Dev', hiredAt: 0, assignedBusinessId: 'biz_test', dailySalary: 10_000, skillLevel: 0 },
     ];
     state.cash = 50_000;
     const advice = generateAdvice(state);
@@ -139,11 +139,11 @@ describe('businessProfitExplainer', () => {
     const summary = businessProfitExplainer(state, 'biz_test');
     const fin = businessFinancials(state.businesses[0], state.employees);
     expect(summary).toContain('Lemonade Stand');
-    expect(summary).toContain(formatMoney(fin.hourlyIncome, { compact: true }));
-    expect(summary).toContain(formatMoney(fin.hourlyExpense, { compact: true }));
-    expect(summary).toContain(`profit of ${formatMoney(fin.hourlyProfit, { compact: true })}/hr`);
+    expect(summary).toContain(formatMoney(fin.dailyIncome, { compact: true }));
+    expect(summary).toContain(formatMoney(fin.dailyExpense, { compact: true }));
+    expect(summary).toContain(`profit of ${formatMoney(fin.dailyProfit, { compact: true })}/day`);
     // A fresh business with no Marketing/Staff investment should be bleeding money
     // to the neglect penalty, so expense is meaningfully above the raw base expense.
-    expect(fin.hourlyExpense).toBeGreaterThan(fin.baseExpense);
+    expect(fin.dailyExpense).toBeGreaterThan(fin.baseExpense);
   });
 });

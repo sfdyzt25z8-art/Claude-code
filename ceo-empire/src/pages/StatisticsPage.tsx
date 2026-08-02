@@ -32,7 +32,7 @@ export default function StatisticsPage() {
     .map((b) => {
       const template = getBusinessTemplate(b.templateId);
       const fin = businessFinancials(b, state.employees, state.activeEvents);
-      return { name: template?.name ?? b.templateId, profit: Math.round(fin.hourlyProfit) };
+      return { name: template?.name ?? b.templateId, profit: Math.round(fin.dailyProfit) };
     })
     .sort((a, b) => b.profit - a.profit);
 
@@ -137,7 +137,7 @@ export default function StatisticsPage() {
                 />
                 <Tooltip
                   contentStyle={{ background: '#10161f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
-                  formatter={(value) => [formatMoney(Number(value)), 'Profit/hr']}
+                  formatter={(value) => [formatMoney(Number(value)), 'Profit/day']}
                 />
                 <Bar dataKey="profit" radius={[6, 6, 0, 0]}>
                   {incomeByBusiness.map((d, i) => (

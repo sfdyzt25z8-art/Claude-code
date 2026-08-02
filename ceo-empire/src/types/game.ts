@@ -34,8 +34,8 @@ export interface BusinessTemplate {
   icon: string;
   description: string;
   baseCost: number;
-  baseHourlyIncome: number;
-  baseHourlyExpense: number;
+  baseDailyIncome: number;
+  baseDailyExpense: number;
   baseEmployeeCapacity: number;
 }
 
@@ -73,10 +73,10 @@ export interface EmployeeTemplate {
   icon: string;
   description: string;
   baseHireCost: number;
-  baseHourlySalary: number;
-  /** Multiplier applied to a business's hourly income when assigned. */
+  baseDailySalary: number;
+  /** Multiplier applied to a business's daily income when assigned. */
   incomeBoost: number;
-  /** Multiplier applied to a business's hourly expense when assigned (reductions are < 1). */
+  /** Multiplier applied to a business's daily expense when assigned (reductions are < 1). */
   expenseReduction: number;
   suitedCategories: BusinessCategory[];
 }
@@ -87,7 +87,7 @@ export interface Employee {
   name: string;
   hiredAt: number;
   assignedBusinessId: string | null;
-  hourlySalary: number;
+  dailySalary: number;
   /** Training level (0-MAX_EMPLOYEE_SKILL_LEVEL) — boosts their income/expense contribution. */
   skillLevel: number;
 }

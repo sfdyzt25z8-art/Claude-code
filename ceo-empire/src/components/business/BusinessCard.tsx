@@ -42,10 +42,10 @@ export function BusinessCard({ template, owned, state, onBuy, onManage }: Busine
       {owned && fin ? (
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="flex items-center gap-1.5 text-emerald-400">
-            <ArrowUpRight className="h-3.5 w-3.5" /> {formatMoney(fin.hourlyIncome, { compact: true })}/hr
+            <ArrowUpRight className="h-3.5 w-3.5" /> {formatMoney(fin.dailyIncome, { compact: true })}/day
           </div>
           <div className="flex items-center gap-1.5 text-red-400">
-            <ArrowDownRight className="h-3.5 w-3.5" /> {formatMoney(fin.hourlyExpense, { compact: true })}/hr
+            <ArrowDownRight className="h-3.5 w-3.5" /> {formatMoney(fin.dailyExpense, { compact: true })}/day
           </div>
           <div className="col-span-2 flex items-center gap-1.5 text-white/50">
             <Users className="h-3.5 w-3.5" /> {employeeCapacityUsed(owned)}/{employeeCapacity(owned)} staffed
@@ -54,7 +54,7 @@ export function BusinessCard({ template, owned, state, onBuy, onManage }: Busine
       ) : (
         <div className="grid grid-cols-2 gap-2 text-xs text-white/50">
           <div>Cost: <span className="font-medium text-white">{formatMoney(template.baseCost, { compact: true })}</span></div>
-          <div>Income: <span className="font-medium text-emerald-400">{formatMoney(template.baseHourlyIncome, { compact: true })}/hr</span></div>
+          <div>Income: <span className="font-medium text-emerald-400">{formatMoney(template.baseDailyIncome, { compact: true })}/day</span></div>
         </div>
       )}
 

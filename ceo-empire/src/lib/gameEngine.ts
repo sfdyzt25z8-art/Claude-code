@@ -15,8 +15,6 @@ import { INVESTMENT_ASSETS } from '@/data/investments';
 export const STARTING_CASH = 10_000;
 /** How many real-time seconds make up one in-game day. */
 export const GAME_DAY_SECONDS = 180;
-/** How many real-time seconds make up one in-game hour — business income/expense pace off this. */
-export const GAME_HOUR_SECONDS = GAME_DAY_SECONDS / 24;
 
 /** Net worth required to be eligible to Prestige. */
 export const PRESTIGE_MIN_NET_WORTH = 5_000_000;
@@ -80,18 +78,19 @@ function lastFiniteCash(history: GameState['netWorthHistory']): number | null {
 /** Fills in defaults for any fields missing from an older/loaded save (schema drift safety net). */
 export function hydrateState(raw: GameState): GameState {
   const employees = raw.employees.map((e) => {
-    // Older saves persisted this field as `dailySalary` before the hourly-pacing rename.
-    const legacy = e as Employee & { dailySalary?: number };
+    // A save made during the brief hourly-pacing window persisted this field as
+    // `hourlySalary` instead; migrate it back so it isn't silently read as undefined.
+    const legacy = e as Employee & { hourlySalary?: number };
     return {
       ...e,
       skillLevel: e.skillLevel ?? 0,
-      hourlySalary: e.hourlySalary ?? legacy.dailySalary ?? 0,
+      dailySalary: e.dailySalary ?? legacy.hourlySalary ?? 0,
     };
   });
 
-  // A save made under the `dailySalary` bug above got `emp.hourlySalary` treated as
-  // undefined, which poisoned expense/profit/cash with NaN on every tick since. Recover
-  // from the last finite point in net worth history rather than losing all progress.
+  // A missing salary field used to be read as undefined, which poisoned
+  // expense/profit/cash with NaN on every tick since. Recover from the last finite
+  // point in net worth history rather than losing all progress if that ever recurs.
   const cash = Number.isFinite(raw.cash) ? raw.cash : (lastFiniteCash(raw.netWorthHistory) ?? STARTING_CASH);
   const totalExpensesPaid = Number.isFinite(raw.totalExpensesPaid) ? raw.totalExpensesPaid : 0;
 
@@ -182,34 +181,34 @@ function employeeMultipliers(
     const skillBonus = 1 + (emp.skillLevel ?? 0) * EMPLOYEE_SKILL_BONUS_PER_LEVEL;
     income += def.incomeBoost * suitBonus * skillBonus;
     expense += def.expenseReduction * suitBonus * skillBonus;
-    salaries += emp.hourlySalary;
+    salaries += emp.dailySalary;
   }
   return { income, expense: Math.max(0.1, expense), salaries };
 }
 
-/** Fraction of base income lost per hour when marketing+staff are both fully neglected. */
+/** Fraction of base income lost per day when marketing+staff are both fully neglected. */
 export const NEGLECT_RATE = 0.25;
 /** Combined marketing+staff upgrade levels needed to fully offset the neglect penalty. */
 export const NEGLECT_RELIEF_LEVELS = 4;
 
 /**
  * A business that never invests in Marketing or Staff Training bleeds customers to
- * competitors — this returns the resulting extra hourly expense. Putting levels into
+ * competitors — this returns the resulting extra daily expense. Putting levels into
  * either upgrade (they combine) shrinks it linearly down to zero.
  */
-export function neglectPenalty(business: OwnedBusiness, baseHourlyIncome: number): number {
+export function neglectPenalty(business: OwnedBusiness, baseDailyIncome: number): number {
   const marketing = business.upgrades.marketing ?? 0;
   const staff = business.upgrades.staff ?? 0;
   const factor = Math.max(0, 1 - (marketing + staff) / NEGLECT_RELIEF_LEVELS);
-  return baseHourlyIncome * NEGLECT_RATE * factor;
+  return baseDailyIncome * NEGLECT_RATE * factor;
 }
 
 export interface BusinessFinancials {
   baseIncome: number;
   baseExpense: number;
-  hourlyIncome: number;
-  hourlyExpense: number;
-  hourlyProfit: number;
+  dailyIncome: number;
+  dailyExpense: number;
+  dailyProfit: number;
   neglectPenalty: number;
 }
 
@@ -220,46 +219,46 @@ export function businessFinancials(
 ): BusinessFinancials {
   const template = getBusinessTemplate(business.templateId);
   if (!template) {
-    return { baseIncome: 0, baseExpense: 0, hourlyIncome: 0, hourlyExpense: 0, hourlyProfit: 0, neglectPenalty: 0 };
+    return { baseIncome: 0, baseExpense: 0, dailyIncome: 0, dailyExpense: 0, dailyProfit: 0, neglectPenalty: 0 };
   }
   const up = upgradeMultipliers(business);
   const emp = employeeMultipliers(business, employees);
   const eventIncomeMult = activeEventMultiplier(activeEvents, 'all_income');
   const eventExpenseMult = activeEventMultiplier(activeEvents, 'all_expenses');
-  const neglect = neglectPenalty(business, template.baseHourlyIncome);
+  const neglect = neglectPenalty(business, template.baseDailyIncome);
 
-  const hourlyIncome = template.baseHourlyIncome * up.income * emp.income * eventIncomeMult;
-  const hourlyExpense =
-    template.baseHourlyExpense * up.expense * emp.expense * eventExpenseMult + emp.salaries + neglect;
+  const dailyIncome = template.baseDailyIncome * up.income * emp.income * eventIncomeMult;
+  const dailyExpense =
+    template.baseDailyExpense * up.expense * emp.expense * eventExpenseMult + emp.salaries + neglect;
 
   return {
-    baseIncome: template.baseHourlyIncome,
-    baseExpense: template.baseHourlyExpense,
-    hourlyIncome,
-    hourlyExpense,
+    baseIncome: template.baseDailyIncome,
+    baseExpense: template.baseDailyExpense,
+    dailyIncome,
+    dailyExpense,
     neglectPenalty: neglect,
-    hourlyProfit: hourlyIncome - hourlyExpense,
+    dailyProfit: dailyIncome - dailyExpense,
   };
 }
 
 export interface EmpireTotals {
-  hourlyIncome: number;
-  hourlyExpense: number;
-  hourlyProfit: number;
+  dailyIncome: number;
+  dailyExpense: number;
+  dailyProfit: number;
 }
 
 export function computeEmpireTotals(state: GameState): EmpireTotals {
-  let hourlyIncome = 0;
-  let hourlyExpense = 0;
+  let dailyIncome = 0;
+  let dailyExpense = 0;
   for (const business of state.businesses) {
     const fin = businessFinancials(business, state.employees, state.activeEvents);
-    hourlyIncome += fin.hourlyIncome;
-    hourlyExpense += fin.hourlyExpense;
+    dailyIncome += fin.dailyIncome;
+    dailyExpense += fin.dailyExpense;
   }
   // Prestige and Education grant permanent, empire-wide income boosts (applied here
   // rather than per-business so each business's own numbers stay legible on its own).
-  hourlyIncome *= prestigeMultiplier(state) * educationMultiplier(state);
-  return { hourlyIncome, hourlyExpense, hourlyProfit: hourlyIncome - hourlyExpense };
+  dailyIncome *= prestigeMultiplier(state) * educationMultiplier(state);
+  return { dailyIncome, dailyExpense, dailyProfit: dailyIncome - dailyExpense };
 }
 
 /** Approximate resale/asset value of a business, contributing to net worth. */

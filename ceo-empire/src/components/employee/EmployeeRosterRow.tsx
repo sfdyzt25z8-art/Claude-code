@@ -37,7 +37,7 @@ export function EmployeeRosterRow({
       </div>
       <div className="min-w-[120px] flex-1">
         <p className="text-xs font-medium text-white">{employee.name}</p>
-        <p className="text-[11px] text-white/40">{def.name} &middot; {formatMoney(employee.hourlySalary)}/hr</p>
+        <p className="text-[11px] text-white/40">{def.name} &middot; {formatMoney(employee.dailySalary)}/day</p>
         <div className="mt-1 flex items-center gap-1">
           {Array.from({ length: MAX_EMPLOYEE_SKILL_LEVEL }).map((_, i) => (
             <span
