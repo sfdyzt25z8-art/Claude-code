@@ -58,7 +58,7 @@ describe('checkNewAchievements', () => {
       name: `Employee ${i}`,
       hiredAt: 0,
       assignedBusinessId: null,
-      hourlySalary: 60,
+      dailySalary: 60,
       skillLevel: 0,
     }));
     const result = checkNewAchievements(state, 200_000);

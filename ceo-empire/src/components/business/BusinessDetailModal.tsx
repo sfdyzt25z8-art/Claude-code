@@ -69,18 +69,18 @@ export function BusinessDetailModal({
             <div>
               <p className="text-white/40">Income</p>
               <p className="flex items-center gap-1 font-semibold text-emerald-400">
-                <ArrowUpRight className="h-3.5 w-3.5" /> {formatMoney(fin.hourlyIncome, { compact: true })}
+                <ArrowUpRight className="h-3.5 w-3.5" /> {formatMoney(fin.dailyIncome, { compact: true })}
               </p>
             </div>
             <div>
               <p className="text-white/40">Expenses</p>
               <p className="flex items-center gap-1 font-semibold text-red-400">
-                <ArrowDownRight className="h-3.5 w-3.5" /> {formatMoney(fin.hourlyExpense, { compact: true })}
+                <ArrowDownRight className="h-3.5 w-3.5" /> {formatMoney(fin.dailyExpense, { compact: true })}
               </p>
             </div>
             <div>
-              <p className="text-white/40">Profit / hr</p>
-              <p className="font-semibold text-white">{formatMoney(fin.hourlyProfit, { compact: true })}</p>
+              <p className="text-white/40">Profit / day</p>
+              <p className="font-semibold text-white">{formatMoney(fin.dailyProfit, { compact: true })}</p>
             </div>
           </div>
         </div>
@@ -89,7 +89,7 @@ export function BusinessDetailModal({
           <div className="flex items-start gap-2.5 rounded-xl border border-red-500/25 bg-red-500/[0.06] p-3 text-xs text-red-300">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <p>
-              Losing an extra <span className="font-semibold">{formatMoney(fin.neglectPenalty, { compact: true })}/hr</span> to
+              Losing an extra <span className="font-semibold">{formatMoney(fin.neglectPenalty, { compact: true })}/day</span> to
               competitors — you haven't invested in Marketing or Staff Training. Upgrade either one below to win it back.
             </p>
           </div>
@@ -167,7 +167,7 @@ export function BusinessDetailModal({
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-medium text-white">{emp.name}</p>
-                      <p className="text-[11px] text-white/40">{empDef.name} &middot; {formatMoney(emp.hourlySalary)}/hr</p>
+                      <p className="text-[11px] text-white/40">{empDef.name} &middot; {formatMoney(emp.dailySalary)}/day</p>
                     </div>
                     <button
                       onClick={() => fireEmployee(emp.id)}
