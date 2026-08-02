@@ -38,6 +38,8 @@ describe('LifestylePage', () => {
     expect(screen.getByText('Sports Car')).toBeInTheDocument();
     expect(screen.getByText('Yacht')).toBeInTheDocument();
     expect(screen.getByText('Vintage Art Collection')).toBeInTheDocument();
+    expect(screen.getByText('Vineyard Estate')).toBeInTheDocument();
+    expect(screen.getByText('Antique Watch Collection')).toBeInTheDocument();
   });
 
   it('filters to the new Collectibles category', async () => {

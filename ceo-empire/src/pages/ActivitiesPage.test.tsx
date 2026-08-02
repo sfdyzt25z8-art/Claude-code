@@ -37,6 +37,14 @@ describe('ActivitiesPage', () => {
     expect(screen.getByText('University Semester')).toBeInTheDocument();
   });
 
+  it('lists the newest additional activities', () => {
+    renderPage();
+    expect(screen.getByText('Read a Biography')).toBeInTheDocument();
+    expect(screen.getByText('PhD Program')).toBeInTheDocument();
+    expect(screen.getByText('Go Fishing')).toBeInTheDocument();
+    expect(screen.getByText('Attend a Music Festival')).toBeInTheDocument();
+  });
+
   it('filters the list by category', async () => {
     const user = userEvent.setup();
     renderPage();
