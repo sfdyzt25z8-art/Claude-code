@@ -83,6 +83,17 @@ describe('advanceTime', () => {
     expect(result.state.level).toBe(2);
   });
 
+  it('grants fractional XP for small net worth gains instead of flooring them away to 0', () => {
+    // A single 1-second tick only grows net worth by a fraction of a dollar, which
+    // used to floor to 0 XP every tick, making passive XP gain effectively dead.
+    const state = createInitialState();
+    state.businesses = [lemonadeStand()];
+    state.achievementsUnlocked = ['first_business']; // isolate growth XP from achievement XP
+    const result = advanceTime(state, 1, state.lastTickAt + 1000);
+    expect(result.state.xp).toBeGreaterThan(0);
+    expect(result.state.xp).toBeLessThan(1);
+  });
+
   it('advances lastTickAt to the provided now', () => {
     const state = createInitialState();
     const now = state.lastTickAt + 1000;

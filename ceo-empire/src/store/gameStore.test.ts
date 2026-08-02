@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { useGameStore } from './gameStore';
 import { createInitialState, PRESTIGE_MIN_NET_WORTH } from '@/lib/gameEngine';
 import { xpForNextLevel, levelProgressFromXp } from '@/data/levels';
+import { getActivity, activityXpReward } from '@/data/activities';
 
 describe('gameStore.prestige', () => {
   beforeEach(() => {
@@ -158,13 +159,14 @@ describe('gameStore.doActivity', () => {
     });
   });
 
-  it('spends cash, raises education, and tracks the completion', () => {
+  it('spends cash, raises education, earns XP, and tracks the completion', () => {
     const result = useGameStore.getState().doActivity('business_book');
 
     expect(result.ok).toBe(true);
     const state = useGameStore.getState().state;
     expect(state.cash).toBe(10_000 - 10);
     expect(state.education).toBe(1);
+    expect(state.xp).toBe(activityXpReward(getActivity('business_book')!));
     expect(state.totalEducationSpend).toBe(10);
     expect(state.activitiesCompleted.business_book).toBe(1);
   });

@@ -8,6 +8,8 @@ import { levelProgressFromXp } from '@/data/levels';
 export const MAX_OFFLINE_SECONDS = 12 * 60 * 60;
 const MAX_DAYS_ROLLED_AT_ONCE = 8;
 const NET_WORTH_HISTORY_LIMIT = 150;
+/** $ of net worth growth needed to earn 1 XP from passive play. */
+export const XP_PER_NET_WORTH_GROWTH = 20;
 
 export interface AdvanceResult {
   state: GameState;
@@ -75,7 +77,9 @@ export function advanceTime(prev: GameState, elapsedSeconds: number, now: number
 
   const netWorthAfter = computeNetWorth(state);
   const { newly, xpGained: achievementXp } = checkNewAchievements(state, netWorthAfter);
-  const growthXp = Math.max(0, Math.floor((netWorthAfter - netWorthBefore) / 2000));
+  // Not floored: like cash, XP accrues fractionally every tick so slow, steady
+  // profit growth still earns XP instead of being rounded away to 0 each tick.
+  const growthXp = Math.max(0, (netWorthAfter - netWorthBefore) / XP_PER_NET_WORTH_GROWTH);
   const totalXpGained = achievementXp + growthXp;
 
   let leveledUp = false;

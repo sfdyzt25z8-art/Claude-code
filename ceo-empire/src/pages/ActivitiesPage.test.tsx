@@ -51,7 +51,7 @@ describe('ActivitiesPage', () => {
     expect(screen.getByText('+0%')).toBeInTheDocument();
   });
 
-  it('does a cheap activity, spending cash and raising education and the income bonus', async () => {
+  it('does a cheap activity, spending cash and raising education, the income bonus, and XP', async () => {
     const user = userEvent.setup();
     renderPage();
 
@@ -61,7 +61,13 @@ describe('ActivitiesPage', () => {
     expect(useGameStore.getState().state.education).toBe(1);
     expect(useGameStore.getState().state.totalEducationSpend).toBe(10);
     expect(useGameStore.getState().state.activitiesCompleted.business_book).toBe(1);
+    expect(useGameStore.getState().state.xp).toBeGreaterThan(0);
     expect(screen.getByText('Done 1x')).toBeInTheDocument();
+  });
+
+  it('shows the XP a cash-cost activity will earn', () => {
+    renderPage();
+    expect(within(activityCard('Read a Business Book')).getByText('+4 XP')).toBeInTheDocument();
   });
 
   it('disables an activity the player cannot afford, without touching the store', async () => {

@@ -65,7 +65,7 @@ export default function ActivitiesPage() {
         </div>
         <div>
           <p className="text-xs text-white/40">Available XP</p>
-          <p className="text-xl font-semibold text-white">{formatNumber(state.xp)}</p>
+          <p className="text-xl font-semibold text-white">{formatNumber(Math.floor(state.xp))}</p>
         </div>
       </Card>
 

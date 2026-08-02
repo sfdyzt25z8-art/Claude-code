@@ -1,9 +1,10 @@
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, Zap } from 'lucide-react';
 import type { ActivityItem } from '@/types/game';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { formatMoney, formatNumber } from '@/lib/format';
+import { activityXpReward } from '@/data/activities';
 
 export function ActivityItemCard({
   activity,
@@ -38,9 +39,16 @@ export function ActivityItemCard({
             )}
           </div>
         </div>
-        <span className="flex items-center gap-1 rounded-full border border-blue-500/20 bg-blue-500/[0.06] px-2 py-0.5 text-[10px] font-semibold text-blue-300">
-          <GraduationCap className="h-3 w-3" /> +{activity.educationBoost}
-        </span>
+        <div className="flex flex-col items-end gap-1">
+          <span className="flex items-center gap-1 rounded-full border border-blue-500/20 bg-blue-500/[0.06] px-2 py-0.5 text-[10px] font-semibold text-blue-300">
+            <GraduationCap className="h-3 w-3" /> +{activity.educationBoost}
+          </span>
+          {!isXpCost && (
+            <span className="flex items-center gap-1 rounded-full border border-gold-500/20 bg-gold-500/[0.06] px-2 py-0.5 text-[10px] font-semibold text-gold-300">
+              <Zap className="h-3 w-3" /> +{formatNumber(activityXpReward(activity))} XP
+            </span>
+          )}
+        </div>
       </div>
 
       <p className="text-xs leading-relaxed text-white/40">{activity.description}</p>

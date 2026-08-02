@@ -157,3 +157,11 @@ export const ACTIVITY_CATEGORY_LABELS: Record<ActivityCategory, string> = {
 export function getActivity(id: string): ActivityItem | undefined {
   return ACTIVITY_ITEMS.find((a) => a.id === id);
 }
+
+/** XP earned per point of educationBoost when a cash-cost activity is done, so
+ * investing in yourself also funds the XP you spend on recreation. */
+export const XP_PER_EDUCATION_BOOST = 4;
+
+export function activityXpReward(activity: ActivityItem): number {
+  return activity.educationBoost * XP_PER_EDUCATION_BOOST;
+}

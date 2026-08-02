@@ -14,7 +14,7 @@ import { getInvestmentAsset } from '@/data/investments';
 import { getEventTemplate } from '@/data/events';
 import { getAchievement } from '@/data/achievements';
 import { getLifestyleItem } from '@/data/lifestyle';
-import { getActivity } from '@/data/activities';
+import { getActivity, activityXpReward } from '@/data/activities';
 import {
   createInitialState,
   employeeCapacity,
@@ -409,18 +409,23 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }
 
     if (state.cash < activity.cost) return { ok: false, error: 'Not enough cash.' };
-    set((s) => ({
-      state: {
-        ...s.state,
-        cash: s.state.cash - activity.cost,
-        education: Math.min(100, s.state.education + activity.educationBoost),
-        totalEducationSpend: s.state.totalEducationSpend + activity.cost,
-        activitiesCompleted: {
-          ...s.state.activitiesCompleted,
-          [activityId]: (s.state.activitiesCompleted[activityId] ?? 0) + 1,
+    set((s) => {
+      const newXp = s.state.xp + activityXpReward(activity);
+      return {
+        state: {
+          ...s.state,
+          cash: s.state.cash - activity.cost,
+          xp: newXp,
+          level: levelProgressFromXp(newXp).level,
+          education: Math.min(100, s.state.education + activity.educationBoost),
+          totalEducationSpend: s.state.totalEducationSpend + activity.cost,
+          activitiesCompleted: {
+            ...s.state.activitiesCompleted,
+            [activityId]: (s.state.activitiesCompleted[activityId] ?? 0) + 1,
+          },
         },
-      },
-    }));
+      };
+    });
     return { ok: true };
   },
 
