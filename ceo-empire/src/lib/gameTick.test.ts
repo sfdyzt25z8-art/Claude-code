@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInitialState, GAME_DAY_SECONDS, NEGLECT_RATE } from './gameEngine';
+import { createInitialState, GAME_DAY_SECONDS, GAME_HOUR_SECONDS, NEGLECT_RATE } from './gameEngine';
 import { advanceTime } from './gameTick';
 import { xpForNextLevel } from '@/data/levels';
 import type { OwnedBusiness } from '@/types/game';
@@ -22,14 +22,14 @@ describe('advanceTime', () => {
     expect(result.daysPassed).toBe(0);
   });
 
-  it('accrues cash proportional to daily profit and elapsed time', () => {
+  it('accrues cash proportional to hourly profit and elapsed time', () => {
     const state = createInitialState();
     state.businesses = [lemonadeStand()];
-    // lemonade stand: $150 income - $40 expense - $37.50 neglect penalty (no marketing/staff) = $72.50/day profit
-    const dailyProfit = 150 - (40 + 150 * NEGLECT_RATE);
-    const elapsed = GAME_DAY_SECONDS / 2; // half a day
+    // lemonade stand: $150 income - $40 expense - $37.50 neglect penalty (no marketing/staff) = $72.50/hr profit
+    const hourlyProfit = 150 - (40 + 150 * NEGLECT_RATE);
+    const elapsed = GAME_HOUR_SECONDS / 2; // half an hour
     const result = advanceTime(state, elapsed, state.lastTickAt + elapsed * 1000);
-    expect(result.state.cash).toBeCloseTo(state.cash + dailyProfit / 2, 5);
+    expect(result.state.cash).toBeCloseTo(state.cash + hourlyProfit / 2, 5);
   });
 
   it('does not roll the day forward for a small elapsed time', () => {
@@ -84,7 +84,7 @@ describe('advanceTime', () => {
   });
 
   it('grants fractional XP for small net worth gains instead of flooring them away to 0', () => {
-    // A single 1-second tick only grows net worth by a fraction of a dollar, which
+    // A single 1-second tick still only grows net worth by a few dollars, which
     // used to floor to 0 XP every tick, making passive XP gain effectively dead.
     const state = createInitialState();
     state.businesses = [lemonadeStand()];

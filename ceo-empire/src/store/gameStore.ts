@@ -209,7 +209,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const template = EMPLOYEE_TEMPLATES[type];
     const countOfType = state.employees.filter((e) => e.type === type).length;
     const cost = Math.round(template.baseHireCost * (1 + 0.12 * countOfType));
-    const salary = Math.round(template.baseDailySalary * (1 + 0.08 * countOfType));
+    const salary = Math.round(template.baseHourlySalary * (1 + 0.08 * countOfType));
     if (state.cash < cost) return { ok: false, error: 'Not enough cash.' };
 
     let targetBusiness: OwnedBusiness | undefined;
@@ -227,7 +227,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       name: randomEmployeeName(),
       hiredAt: Date.now(),
       assignedBusinessId: businessId ?? null,
-      dailySalary: salary,
+      hourlySalary: salary,
       skillLevel: 0,
     };
 
