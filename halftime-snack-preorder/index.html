@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Falcon FA — Halftime Snack Preorder</title>
+<title>Falcon FA — Halftime Order Kiosk</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,96 +12,85 @@
       <span class="brand-badge">🦅</span>
       <div>
         <h1>Falcon Football Academy</h1>
-        <p>Halftime Snack Preorder</p>
+        <p>Halftime Order Kiosk</p>
       </div>
     </div>
-    <nav class="tabs">
-      <button class="tab-btn active" data-tab="order">Preorder</button>
-      <button class="tab-btn" data-tab="pickup">Halftime Pickup</button>
-    </nav>
+    <div class="order-counter" id="order-counter">Orders today: 0 / 100</div>
   </header>
 
   <main>
-    <!-- ORDER TAB -->
-    <section id="order" class="tab-panel active">
-      <form id="order-form" class="card">
-        <h2>Pick your snack &amp; drink before Saturday's match</h2>
-
-        <label>
-          Player name
-          <input type="text" id="player-name" placeholder="e.g. Zayed A." required />
-        </label>
-
-        <label>
-          Team / age group
-          <select id="player-team" required>
-            <option value="" disabled selected>Select your team</option>
-            <option>U8</option>
-            <option>U10</option>
-            <option>U12</option>
-            <option>U14</option>
-            <option>U16</option>
-          </select>
-        </label>
-
-        <fieldset>
-          <legend>Snack</legend>
-          <div class="option-grid" id="snack-options">
-            <label class="option"><input type="radio" name="snack" value="Banana" required><span>🍌 Banana</span></label>
-            <label class="option"><input type="radio" name="snack" value="Orange Slices"><span>🍊 Orange Slices</span></label>
-            <label class="option"><input type="radio" name="snack" value="Granola Bar"><span>🥜 Granola Bar</span></label>
-            <label class="option"><input type="radio" name="snack" value="Apple"><span>🍎 Apple</span></label>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>Drink</legend>
-          <div class="option-grid" id="drink-options">
-            <label class="option"><input type="radio" name="drink" value="Water" required><span>💧 Water</span></label>
-            <label class="option"><input type="radio" name="drink" value="Electrolyte Drink"><span>⚡ Electrolyte Drink</span></label>
-            <label class="option"><input type="radio" name="drink" value="Juice Box"><span>🧃 Juice Box</span></label>
-          </div>
-        </fieldset>
-
-        <label>
-          Allergy note (optional)
-          <input type="text" id="allergy-note" placeholder="e.g. nut allergy" />
-        </label>
-
-        <button type="submit" class="btn-primary">Reserve my bag</button>
-        <p id="order-confirm" class="confirm" hidden></p>
-      </form>
-
-      <div class="card">
-        <h3>Your upcoming order</h3>
-        <p id="my-order-summary" class="muted">No order saved on this device yet.</p>
-        <button id="cancel-order" class="btn-secondary" hidden>Cancel my order</button>
+    <!-- STEP 1: NAME -->
+    <section id="screen-name" class="screen active">
+      <div class="card center-card">
+        <h2>Welcome! 👋</h2>
+        <p class="muted">What's your name?</p>
+        <input type="text" id="input-name" placeholder="Enter your name" autocomplete="off" />
+        <button id="btn-name-next" class="btn-primary">Continue</button>
+        <p id="name-error" class="error" hidden></p>
       </div>
     </section>
 
-    <!-- PICKUP TAB -->
-    <section id="pickup" class="tab-panel">
+    <!-- STEP 2: MENU -->
+    <section id="screen-menu" class="screen">
       <div class="card">
-        <div class="pickup-header">
-          <h2>Halftime Bag Pickup</h2>
-          <div class="stats">
-            <span id="stat-total">0 bags</span>
-            <span id="stat-remaining">0 remaining</span>
-          </div>
-        </div>
-        <input type="search" id="pickup-search" placeholder="Search by player name…" />
-        <div class="filter-row">
-          <label><input type="checkbox" id="hide-picked" /> Hide already-collected bags</label>
-          <button id="reset-day" class="btn-secondary">Reset for next Saturday</button>
-        </div>
-        <ul id="pickup-list" class="pickup-list"></ul>
+        <h2 id="menu-greeting">What do you want at halftime?</h2>
+        <p class="muted">Pick as many items as you'd like from the menu below.</p>
+
+        <fieldset>
+          <legend>🥗 Food</legend>
+          <div class="option-grid" id="food-options"></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>🥤 Drinks</legend>
+          <div class="option-grid" id="drink-options"></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>🍫 Snacks</legend>
+          <div class="option-grid" id="snack-options"></div>
+        </fieldset>
+
+        <button id="btn-place-order" class="btn-primary">Place My Order</button>
+        <p id="menu-error" class="error" hidden></p>
+      </div>
+    </section>
+
+    <!-- STEP 3: CONFIRMATION -->
+    <section id="screen-confirm" class="screen">
+      <div class="card center-card">
+        <p class="confirm-line" id="confirm-thanks"></p>
+        <p class="confirm-line confirm-sub">Your order should be here by half time! ⚽</p>
+        <button id="btn-new-order" class="btn-primary">Next Customer</button>
+      </div>
+    </section>
+
+    <!-- LIMIT REACHED -->
+    <section id="screen-full" class="screen">
+      <div class="card center-card">
+        <h2>Order Limit Reached 🛑</h2>
+        <p class="muted">We've taken 100 orders for today. See a staff member for help.</p>
       </div>
     </section>
   </main>
 
   <footer>
-    <p>Built for Operation Halftime Stampede — no more shin-pad stampedes at the snack box.</p>
+    <button id="btn-staff" class="btn-link">Staff view</button>
   </footer>
+
+  <!-- STAFF MODAL -->
+  <div id="staff-modal" class="modal-overlay" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3>All Orders</h3>
+        <button id="btn-close-staff" class="btn-secondary">Close</button>
+      </div>
+      <p class="muted" id="staff-count"></p>
+      <input type="search" id="staff-search" placeholder="Search by name…" />
+      <ul id="staff-list" class="pickup-list"></ul>
+      <button id="btn-reset-all" class="btn-secondary danger">Reset all orders for next game day</button>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
