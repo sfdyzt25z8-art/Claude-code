@@ -77,10 +77,11 @@ service cloud.firestore {
 
 ## Deployment
 
-A GitHub Actions workflow (`.github/workflows/ceo-empire-deploy.yml`) builds and deploys this
-app to GitHub Pages on every push to `main` that touches `ceo-empire/`, or on demand via the
-Actions tab ("Run workflow"). It lints, tests, and builds the app, then publishes `dist/` as the
-Pages artifact.
+A GitHub Actions workflow (`.github/workflows/pages-deploy.yml`) builds and deploys this app
+to GitHub Pages on every push to `main` that touches `ceo-empire/` or `halftime-snack-preorder/`,
+or on demand via the Actions tab ("Run workflow"). It lints, tests, and builds this app, then
+publishes it as the site root of a combined Pages artifact (the halftime snack preorder app is
+published alongside it at the `/halftime-snack-preorder/` subpath).
 
 One-time setup (repo admin, on github.com): **Settings → Pages → Source → GitHub Actions**.
 After that, pushing to `main` deploys automatically at
