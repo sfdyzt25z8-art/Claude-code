@@ -14,6 +14,13 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
+## Deployment
+
+A GitHub Actions workflow (`.github/workflows/pages-deploy.yml`) publishes this app to GitHub
+Pages on every push to `main` that touches `halftime-snack-preorder/`, alongside the `ceo-empire`
+app which is published at the site root. This app is served at:
+`https://<owner>.github.io/<repo>/halftime-snack-preorder/`.
+
 ## How it works
 
 The kiosk walks through the same three steps for every customer, then loops
