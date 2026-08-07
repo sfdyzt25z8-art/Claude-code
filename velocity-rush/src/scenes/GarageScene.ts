@@ -112,7 +112,7 @@ export class GarageScene extends Phaser.Scene {
         this.scene.start(SceneKeys.Customization, { carId: car.id });
       }, { width: 200, height: 52, variant: 'secondary' });
       const testDriveBtn = new Button(this, GAME_WIDTH / 2 + 400, GAME_HEIGHT - 70, 'Test Drive', () => {
-        this.scene.start(SceneKeys.Race, {
+        this.scene.start(SceneKeys.Race3D, {
           config: { mode: 'testDrive', trackId: saveManager.getState().selectedTrackId, carId: car.id, difficulty: 'normal', opponentCount: 0 },
         });
       }, { width: 180, height: 52, variant: 'ghost' });

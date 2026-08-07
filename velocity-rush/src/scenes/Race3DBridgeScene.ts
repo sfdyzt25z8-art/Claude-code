@@ -31,9 +31,10 @@ export class Race3DBridgeScene extends Phaser.Scene {
     this.container.style.cssText = 'position:absolute; inset:0; width:100%; height:100%;';
     parent.appendChild(this.container);
 
+    const quitDestination = data.config.mode === 'testDrive' ? SceneKeys.Garage : SceneKeys.MainMenu;
     this.race3d = new Race3DScene(this.container, data.config, {
       onFinish: (result: RaceResultData) => this.leave(() => this.scene.start(SceneKeys.Results, { result })),
-      onQuit: () => this.leave(() => this.scene.start(SceneKeys.MainMenu)),
+      onQuit: () => this.leave(() => this.scene.start(quitDestination)),
     });
 
     if (import.meta.env.DEV) (window as unknown as { __VR_QA_3D__?: Race3DScene }).__VR_QA_3D__ = this.race3d;

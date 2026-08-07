@@ -118,10 +118,7 @@ export class ResultsScene extends Phaser.Scene {
   private buildButtons(result: RaceResultData): void {
     const y = GAME_HEIGHT - 70;
     new Button(this, GAME_WIDTH / 2 - 320, y, 'Retry', () => {
-      // Keep in sync with RaceSetupScene's Start Race routing — Quick Race plays through
-      // the 3D driving view, every other mode still through the 2D RaceScene.
-      const use3D = result.config.mode === 'quickRace';
-      this.scene.start(use3D ? SceneKeys.Race3D : SceneKeys.Race, { config: result.config });
+      this.scene.start(SceneKeys.Race3D, { config: result.config });
     }, { width: 220, height: 54, variant: 'secondary' });
 
     const nextStage = result.config.careerStageId && result.careerStagePassed

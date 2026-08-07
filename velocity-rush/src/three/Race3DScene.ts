@@ -75,6 +75,14 @@ export class Race3DScene {
   private minimapCounter = 0;
   private lastScreechTime = 0;
 
+  private eliminated = new Set<string>();
+  private driftTimer = 90;
+  private checkpointTimeLeft = 0;
+  private eliminationTimer = 0;
+  private integrity = 100;
+  private survivalMinSpeed = 90;
+  private sirenLights = new Map<string, { material: THREE.MeshBasicMaterial; light: THREE.PointLight }>();
+
   constructor(private container: HTMLElement, private config: RaceConfig, private callbacks: Race3DCallbacks) {
     this.init();
   }
@@ -91,6 +99,13 @@ export class Race3DScene {
     this.pendingStuntScore = 0;
     this.minimapCounter = 0;
     this.lastScreechTime = 0;
+    this.eliminated = new Set();
+    this.driftTimer = 90;
+    this.checkpointTimeLeft = 34 + track.laps * 10;
+    this.eliminationTimer = this.config.eliminationIntervalSec ?? 16;
+    this.integrity = 100;
+    this.survivalMinSpeed = 90;
+    this.sirenLights = new Map();
 
     this.canvas = document.createElement('canvas');
     this.canvas.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; display:block;';
@@ -118,6 +133,7 @@ export class Race3DScene {
     this.hud = new Hud3D(this.container);
     this.hud.buildMinimap(this.geo);
     this.hud.setLap(1, this.effectiveLaps());
+    if (this.config.mode === 'testDrive') this.hud.setModeInfo('TEST DRIVE — Esc to return to Garage');
 
     this.keyboard = new Keyboard3D();
     const scheme = settingsManager.get().controlScheme;
@@ -128,7 +144,13 @@ export class Race3DScene {
     window.addEventListener('keydown', this.onKeyDown);
     this.handleResize();
 
-    this.startCountdown();
+    if (this.config.mode === 'testDrive') {
+      this.raceState = 'racing';
+      this.raceStartMs = this.nowMs;
+      audioManager.startPlayerEngine(this.player.car.engineSound);
+    } else {
+      this.startCountdown();
+    }
     audioManager.playMusic('race');
   }
 
@@ -163,6 +185,7 @@ export class Race3DScene {
     this.vehicles = [this.player];
 
     const opponentCount = this.config.opponentCount;
+    const policeCount = this.config.mode === 'policeChase' ? Math.min(2, opponentCount) : 0;
     const usedCarIds = new Set([playerCar.id]);
 
     for (let i = 0; i < opponentCount; i++) {
@@ -180,7 +203,8 @@ export class Race3DScene {
       const spawnTangent = this.geo.getTangentAtProgress(behindProgress);
       const spawnHeading = Math.atan2(spawnTangent.y, spawnTangent.x);
 
-      const vehicle = this.createVehicle(`ai_${i}`, aiCar, perf, customizationManager.getState(aiCar.id), false, pos, spawnHeading);
+      const isPolice = i < policeCount;
+      const vehicle = this.createVehicle(`ai_${i}`, aiCar, perf, customizationManager.getState(aiCar.id), false, pos, spawnHeading, isPolice);
       vehicle.ai = new AIController(this.geo, this.config.difficulty, Math.random);
       this.vehicles.push(vehicle);
     }
@@ -194,14 +218,27 @@ export class Race3DScene {
     isPlayer: boolean,
     pos: { x: number; y: number },
     heading: number,
+    isPolice = false,
   ): RaceVehicle3D {
     const state: VehicleState = createVehicleState(pos, heading, perf);
     const mesh = buildCarMesh3D(car, customization);
     this.scene.add(mesh.group);
 
+    if (isPolice) {
+      mesh.bodyMaterial.color.setHex(0x1a2f6e);
+      const beacon = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.12, 0.9), new THREE.MeshBasicMaterial({ color: 0xff2d2d }));
+      beacon.position.set(-0.1, 1.08, 0);
+      mesh.group.add(beacon);
+      const light = new THREE.PointLight(0xff2d2d, 1.4, 6, 2);
+      light.position.set(-0.1, 1.3, 0);
+      mesh.group.add(light);
+      this.sirenLights.set(id, { material: beacon.material as THREE.MeshBasicMaterial, light });
+    }
+
     return {
       id,
       isPlayer,
+      isPolice,
       car,
       perf,
       state,
@@ -240,7 +277,7 @@ export class Race3DScene {
 
     const throttleAllowed = this.raceState === 'racing';
     for (const vehicle of this.vehicles) {
-      if (vehicle.finished) continue;
+      if (vehicle.finished || this.eliminated.has(vehicle.id)) continue;
       const vInput = throttleAllowed
         ? vehicle.isPlayer
           ? this.playerInput()
@@ -256,22 +293,25 @@ export class Race3DScene {
       if (wasAirborne && vehicle.state.airTime === 0) this.onLanded(vehicle);
 
       this.syncMesh(vehicle);
+      if (vehicle.isPolice) this.updateSiren(vehicle);
 
       if (throttleAllowed) {
         const completedLap = updateLapTracking(vehicle, this.geo, this.nowMs);
-        if (completedLap && vehicle.lap > this.effectiveLaps() && !vehicle.finished) {
+        if (completedLap && vehicle.lap > this.effectiveLaps() && !vehicle.finished && this.config.mode !== 'drift' && this.config.mode !== 'endless') {
           vehicle.finished = true;
           vehicle.finishTimeMs = this.nowMs;
         }
       }
 
       if (vehicle.isPlayer) this.updatePlayerFx(vehicle, dt);
+      if (vehicle.isPolice && this.raceState === 'racing') this.applyPoliceBehavior(vehicle);
     }
 
     if (this.raceState === 'racing') {
       this.resolveCollisions();
+      this.updateModeSpecific(dt);
       this.updateHud();
-      if (this.player.finished) this.endRace('finished');
+      this.checkRaceEnd();
     }
 
     if (this.keyboard.consumeResetPressed()) this.resetPlayerToTrack();
@@ -319,7 +359,7 @@ export class Race3DScene {
   private computeAiInput(vehicle: RaceVehicle3D, dt: number) {
     if (!vehicle.ai) return { throttle: 0, steer: 0, handbrake: false, nitro: false };
     const others: AIVehicleRef[] = this.vehicles
-      .filter((v) => v !== vehicle)
+      .filter((v) => v !== vehicle && !this.eliminated.has(v.id))
       .map((v) => ({ id: v.id, state: v.state, perf: v.perf, radius: v.radius }));
     const obstacles = this.builtTrack.obstacles.map((o) => ({ position: o.position, radius: o.radius }));
     const playerProgress = this.geo.worldToTrack(this.player.state.position).progress;
@@ -334,6 +374,25 @@ export class Race3DScene {
       dt,
       gap,
     );
+  }
+
+  private applyPoliceBehavior(vehicle: RaceVehicle3D): void {
+    const d = distance(vehicle.state.position, this.player.state.position);
+    if (d < 260) {
+      const dx = this.player.state.position.x - vehicle.state.position.x;
+      const dy = this.player.state.position.y - vehicle.state.position.y;
+      const pull = 0.4 * (1 - d / 260);
+      vehicle.state.heading += Math.atan2(dy, dx) > vehicle.state.heading ? pull * 0.02 : -pull * 0.02;
+    }
+  }
+
+  private updateSiren(vehicle: RaceVehicle3D): void {
+    const siren = this.sirenLights.get(vehicle.id);
+    if (!siren) return;
+    const flashOn = Math.floor(this.nowMs / 260) % 2 === 0;
+    const color = flashOn ? 0xff2d2d : 0x2d6bff;
+    siren.material.color.setHex(color);
+    siren.light.color.setHex(color);
   }
 
   private isInPuddle(pos: { x: number; y: number }): boolean {
@@ -375,7 +434,7 @@ export class Race3DScene {
 
   private resolveCollisions(): void {
     const collidables: CollidableVehicle[] = this.vehicles
-      .filter((v) => !v.finished)
+      .filter((v) => !v.finished && !this.eliminated.has(v.id))
       .map((v) => ({ id: v.id, state: v.state, radius: v.radius, mass: v.perf.mass }));
     const vehicleEvents = this.collisionSystem.resolveVehiclePairs(collidables);
 
@@ -392,13 +451,83 @@ export class Race3DScene {
   private updateHud(): void {
     this.hud.setSpeed(getSpeedKmh(this.player.state));
     this.hud.setNitro(this.player.state.nitroFuel / this.player.state.nitroCapacity);
-    this.hud.setLap(this.player.lap, this.effectiveLaps());
-    const standings = computeStandings(this.vehicles);
+    if (this.config.mode !== 'drift' && this.config.mode !== 'endless') {
+      this.hud.setLap(this.player.lap, this.effectiveLaps());
+    }
+    const active = this.vehicles.filter((v) => !this.eliminated.has(v.id));
+    const standings = computeStandings(active);
     const rank = standings.indexOf(this.player) + 1;
-    this.hud.setPosition(rank, this.vehicles.length);
+    this.hud.setPosition(rank, active.length);
 
     this.minimapCounter += 1;
-    if (this.minimapCounter % 4 === 0) this.hud.updateMinimapDots(this.vehicles);
+    if (this.minimapCounter % 4 === 0) this.hud.updateMinimapDots(active);
+  }
+
+  private updateModeSpecific(dt: number): void {
+    if (this.config.mode === 'drift') {
+      this.driftTimer -= dt;
+      this.hud.setModeInfo(`Time left: ${Math.max(0, Math.ceil(this.driftTimer))}s`);
+      this.hud.setDriftScore(this.player.state.driftScoreAccum);
+    } else if (this.config.mode === 'checkpoint') {
+      this.checkpointTimeLeft -= dt;
+      this.hud.setModeInfo(`Time left: ${Math.max(0, Math.ceil(this.checkpointTimeLeft))}s`);
+    } else if (this.config.mode === 'elimination') {
+      this.eliminationTimer -= dt;
+      this.hud.setModeInfo(`Next elimination: ${Math.max(0, Math.ceil(this.eliminationTimer))}s`);
+      if (this.eliminationTimer <= 0) {
+        this.eliminationTimer = this.config.eliminationIntervalSec ?? 16;
+        this.runElimination();
+      }
+    } else if (this.config.mode === 'endless') {
+      this.survivalMinSpeed += dt * 1.4;
+      const playerSpeed = getSpeedKmh(this.player.state);
+      this.hud.setModeInfo(`Distance: ${Math.round(this.player.state.totalDistance / 10)}m  ·  Integrity: ${Math.round(this.integrity)}%`);
+      if (playerSpeed < this.survivalMinSpeed * 0.35) {
+        this.integrity -= dt * 6;
+      }
+    } else if (this.config.mode === 'policeChase') {
+      this.hud.setModeInfo('Lose the police — reach the finish line!');
+    }
+  }
+
+  private runElimination(): void {
+    const active = this.vehicles.filter((v) => !v.finished && !this.eliminated.has(v.id));
+    const standings = computeStandings(active);
+    const last = standings[standings.length - 1];
+    if (!last) return;
+    if (last.isPlayer) {
+      this.endRace('eliminated');
+      return;
+    }
+    this.eliminated.add(last.id);
+    last.mesh.group.visible = false;
+  }
+
+  private checkRaceEnd(): void {
+    if (this.config.mode === 'drift' && this.driftTimer <= 0) {
+      this.endRace('finished');
+      return;
+    }
+    if (this.config.mode === 'checkpoint') {
+      if (this.checkpointTimeLeft <= 0) {
+        this.endRace('dnf');
+        return;
+      }
+      if (this.player.finished) {
+        this.endRace('finished');
+        return;
+      }
+    }
+    if (this.config.mode === 'endless') {
+      if (this.integrity <= 0) {
+        this.endRace('dnf');
+        return;
+      }
+      return;
+    }
+    if (this.player.finished) {
+      this.endRace('finished');
+    }
   }
 
   private resetPlayerToTrack(): void {
@@ -431,9 +560,10 @@ export class Race3DScene {
     title.style.cssText = 'font-size:26px; font-weight:800; margin-bottom:20px; letter-spacing:0.06em;';
     panel.appendChild(title);
 
+    const isTestDrive = this.config.mode === 'testDrive';
     panel.appendChild(this.pauseButton('Resume', '#4facfe', () => this.togglePause()));
     panel.appendChild(this.pauseButton('Restart Race', '#171d42', () => this.restart()));
-    panel.appendChild(this.pauseButton('Quit to Menu', '#ff4d5e', () => this.callbacks.onQuit()));
+    panel.appendChild(this.pauseButton(isTestDrive ? 'Quit to Garage' : 'Quit to Menu', '#ff4d5e', () => this.callbacks.onQuit()));
 
     overlay.appendChild(panel);
     this.container.appendChild(overlay);
@@ -468,8 +598,14 @@ export class Race3DScene {
     audioManager.stopDrift();
     audioManager.stopMusic();
 
-    const standings = computeStandings(this.vehicles);
-    const position = standings.indexOf(this.player) + 1;
+    if (this.config.mode === 'testDrive') {
+      this.callbacks.onQuit();
+      return;
+    }
+
+    const active = this.vehicles.filter((v) => !this.eliminated.has(v.id));
+    const standings = computeStandings(active);
+    const position = outcome === 'eliminated' ? active.length : standings.indexOf(this.player) + 1;
     const totalRacers = this.vehicles.length;
     const raceTimeMs = (this.player.finishTimeMs ?? this.nowMs) - this.raceStartMs;
     const driftScore = Math.round(this.player.state.driftScoreAccum);

@@ -154,7 +154,7 @@ export class MultiplayerScene extends Phaser.Scene {
     if (!this.currentRoom) return;
     const room = this.currentRoom;
     const mode = ROOM_MODE_TO_RACE_MODE[room.mode];
-    this.scene.start(SceneKeys.Race, {
+    this.scene.start(SceneKeys.Race3D, {
       config: {
         mode,
         trackId: room.trackId,
