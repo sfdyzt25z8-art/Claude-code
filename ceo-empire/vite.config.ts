@@ -38,10 +38,11 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
         navigateFallback: 'index.html',
         // This service worker's scope covers the whole Pages site root, which
-        // also hosts unrelated static apps in sibling directories (e.g.
-        // /halftime-snack-preorder/). Without this, navigations into those
-        // directories get wrongly redirected to this SPA's cached shell.
-        navigateFallbackDenylist: [/\/halftime-snack-preorder\//],
+        // also hosts unrelated apps in sibling directories (e.g.
+        // /halftime-snack-preorder/, /velocity-rush/, /focusflow/). Without
+        // this, navigations into those directories get wrongly redirected to
+        // this SPA's cached shell instead of reaching the real app.
+        navigateFallbackDenylist: [/\/halftime-snack-preorder\//, /\/velocity-rush\//, /\/focusflow\//],
       },
     }),
   ],
