@@ -36,6 +36,16 @@ with no external art or audio assets.
 
 - App source: [`velocity-rush/`](velocity-rush/README.md)
 
+## Time Rift
+
+A 2D action-puzzle platformer where every level restart turns your previous run into a
+translucent time clone that replays your exact actions — jump, attack, switch presses,
+and all — while you control a new run and use your past selves to solve puzzles. 10
+levels, three enemy types, and a full menu/HUD/save system. Built with vanilla HTML, CSS,
+and JavaScript on the Canvas API — no build step, no external art or audio assets.
+
+- App source: [`time-rift/`](time-rift/README.md)
+
 ## FocusFlow
 
 A productivity app for goals, tasks, habits, and focus — create goals, break them into
