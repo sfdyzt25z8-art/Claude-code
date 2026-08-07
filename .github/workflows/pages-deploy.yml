@@ -7,6 +7,7 @@ on:
       - "ceo-empire/**"
       - "halftime-snack-preorder/**"
       - "velocity-rush/**"
+      - "focusflow/**"
       - ".github/workflows/pages-deploy.yml"
   workflow_dispatch:
 
@@ -33,6 +34,7 @@ jobs:
           cache-dependency-path: |
             ceo-empire/package-lock.json
             velocity-rush/package-lock.json
+            focusflow/package-lock.json
 
       - name: Build CEO Empire
         working-directory: ceo-empire
@@ -57,13 +59,26 @@ jobs:
           npm ci
           npm run build
 
+      - name: Build FocusFlow
+        working-directory: focusflow
+        run: |
+          npm ci
+          npm run lint
+          npm run build
+        env:
+          # Optional: set these as repository secrets to connect a real AI provider.
+          # Left unset, the AI Coach builds and runs fine with its local fallback.
+          VITE_AI_API_KEY: ${{ secrets.VITE_AI_API_KEY }}
+          VITE_AI_MODEL: ${{ secrets.VITE_AI_MODEL }}
+
       # CEO Empire is the root site; other apps are published under their own subpath.
       - name: Assemble combined Pages site
         run: |
-          mkdir -p site/halftime-snack-preorder site/velocity-rush
+          mkdir -p site/halftime-snack-preorder site/velocity-rush site/focusflow
           cp -r ceo-empire/dist/. site/
           cp halftime-snack-preorder/index.html halftime-snack-preorder/app.js halftime-snack-preorder/style.css site/halftime-snack-preorder/
           cp -r velocity-rush/dist/. site/velocity-rush/
+          cp -r focusflow/dist/. site/focusflow/
 
       - uses: actions/upload-pages-artifact@v3
         with:
