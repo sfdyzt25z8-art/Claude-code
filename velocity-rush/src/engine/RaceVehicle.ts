@@ -18,6 +18,7 @@ export interface RaceVehicle {
   lap: number;
   checkpointsPassed: Set<number>;
   lastCheckpointIndex: number;
+  lastProgress: number;
   finished: boolean;
   finishTimeMs: number | null;
   lapTimes: number[];
@@ -37,15 +38,27 @@ export function updateLapTracking(vehicle: RaceVehicle, geo: TrackGeometry, nowM
   const checkpointCount = geo.checkpoints.length;
   const currentCheckpoint = Math.floor(progress * checkpointCount);
 
-  if (currentCheckpoint !== vehicle.lastCheckpointIndex) {
-    const forwardDelta = (currentCheckpoint - vehicle.lastCheckpointIndex + checkpointCount) % checkpointCount;
-    if (forwardDelta === 1 || forwardDelta === 0) {
-      vehicle.checkpointsPassed.add(currentCheckpoint);
-    }
-    vehicle.lastCheckpointIndex = currentCheckpoint;
-  }
+  // Shortest signed progress delta since the last sample, wrap-aware (handles the 1→0
+  // crossing at the start/finish line). Positive = moving forward around the loop, however
+  // large the step — this is what lets a single big physics step (a frame hitch, or just a
+  // very fast car) still register every checkpoint it swept through, instead of silently
+  // skipping them and leaving the lap impossible to ever complete. Negative = reversing,
+  // which must never count toward completing checkpoints (that would let a player fake a
+  // lap by tapping reverse across the finish line).
+  let delta = progress - vehicle.lastProgress;
+  if (delta > 0.5) delta -= 1;
+  if (delta < -0.5) delta += 1;
 
-  const wrappedToStart = progress < 0.05 && vehicle.checkpointsPassed.size >= checkpointCount - 1;
+  if (currentCheckpoint !== vehicle.lastCheckpointIndex && delta > 0) {
+    const forwardDelta = (currentCheckpoint - vehicle.lastCheckpointIndex + checkpointCount) % checkpointCount;
+    for (let i = 1; i <= forwardDelta; i++) {
+      vehicle.checkpointsPassed.add((vehicle.lastCheckpointIndex + i) % checkpointCount);
+    }
+  }
+  vehicle.lastCheckpointIndex = currentCheckpoint;
+  vehicle.lastProgress = progress;
+
+  const wrappedToStart = progress < 0.05 && delta > 0 && vehicle.checkpointsPassed.size >= checkpointCount - 1;
   vehicle.totalRaceProgress = vehicle.lap + progress;
 
   if (wrappedToStart) {

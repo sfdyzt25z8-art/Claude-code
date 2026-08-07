@@ -14,6 +14,7 @@ import { getTrackById } from '../tracks/TrackData';
 import { buildClosedSpline } from '../utils/MathUtils';
 import type { RaceConfig } from '../engine/RaceTypes';
 import { RACE_MODE_LABEL } from '../engine/RaceTypes';
+import { generateTournamentTrackIds, TOURNAMENT_ROUNDS } from '../engine/Tournament';
 import { audioManager } from '../audio/AudioManager';
 
 interface RaceSetupData {
@@ -46,6 +47,18 @@ export class RaceSetupScene extends Phaser.Scene {
 
     this.tracks = progressionManager.getUnlockedTracks();
     this.cars = progressionManager.getOwnedCars();
+
+    if (this.preset.mode === 'tournament') {
+      if (!this.preset.tournament) {
+        this.preset.tournament = {
+          round: 1,
+          totalRounds: TOURNAMENT_ROUNDS,
+          trackIds: generateTournamentTrackIds(this.tracks.map((t) => t.id), TOURNAMENT_ROUNDS, Date.now()),
+          pointsSoFar: 0,
+        };
+      }
+      this.preset.trackId = this.preset.tournament.trackIds[this.preset.tournament.round - 1];
+    }
 
     const state = saveManager.getState();
     this.trackIndex = Math.max(0, this.tracks.findIndex((t) => t.id === (this.preset.trackId ?? state.selectedTrackId)));
@@ -99,7 +112,11 @@ export class RaceSetupScene extends Phaser.Scene {
     this.add_(this.add.text(320, 268, track.theme.toUpperCase(), { ...FONT.small, color: '#ffc371' }).setOrigin(0.5));
     this.add_(this.add.text(320, 296, track.description, { ...FONT.small, wordWrap: { width: 480 }, align: 'center' }).setOrigin(0.5, 0));
     this.add_(this.add.text(320, 350, `${track.laps} laps · ${track.timeOfDay} · Target lap ${track.targetLapTime}s`, FONT.small).setOrigin(0.5));
-    if (locked) this.add_(this.add.text(320, 380, 'Career Track', { ...FONT.small, color: '#7fdcff' }).setOrigin(0.5));
+    if (this.preset.tournament) {
+      this.add_(this.add.text(320, 380, `Tournament — Round ${this.preset.tournament.round} / ${this.preset.tournament.totalRounds}`, { ...FONT.small, color: '#ffc371' }).setOrigin(0.5));
+    } else if (locked) {
+      this.add_(this.add.text(320, 380, 'Career Track', { ...FONT.small, color: '#7fdcff' }).setOrigin(0.5));
+    }
   }
 
   private drawTrackShapePreview(track: NonNullable<ReturnType<typeof getTrackById>>): Phaser.GameObjects.Graphics {
@@ -227,6 +244,8 @@ export class RaceSetupScene extends Phaser.Scene {
         difficulty: this.difficulty,
         opponentCount: NO_OPPONENT_MODES.has(this.preset.mode ?? 'quickRace') ? 0 : this.opponentCount,
         careerStageId: this.preset.careerStageId,
+        tournament: this.preset.tournament,
+        eliminationIntervalSec: this.preset.eliminationIntervalSec,
       };
       audioManager.uiConfirm();
       this.scene.start(SceneKeys.Race, { config });

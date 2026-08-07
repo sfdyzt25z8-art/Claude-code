@@ -8,6 +8,7 @@ import { TEX } from '../assets/ProceduralTextures';
 import type { RaceResultData } from '../engine/RaceTypes';
 import { getTrackById } from '../tracks/TrackData';
 import { CAREER_STAGES, getCareerStage } from '../engine/CareerData';
+import { maxPossiblePoints } from '../engine/Tournament';
 import { audioManager } from '../audio/AudioManager';
 
 interface ResultsSceneData {
@@ -52,7 +53,24 @@ export class ResultsScene extends Phaser.Scene {
       this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 160, label, { ...FONT.body, color: result.careerStagePassed ? '#38ef7d' : '#ff4d5e' }).setOrigin(0.5);
     }
 
+    if (result.tournament) this.buildTournamentPanel(result);
+
     this.buildButtons(result);
+  }
+
+  private buildTournamentPanel(result: RaceResultData): void {
+    const t = result.tournament!;
+    const maxPoints = maxPossiblePoints(t.totalRounds);
+    const label = t.isFinalRound
+      ? `🏆 Tournament Complete — ${t.totalPoints} / ${maxPoints} points`
+      : `Tournament — Round ${t.round} / ${t.totalRounds} — +${t.pointsThisRound} points this round (${t.totalPoints} total)`;
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 190, label, { ...FONT.body, color: '#ffc371' }).setOrigin(0.5);
+    if (t.isFinalRound && (t.bonusCoins > 0 || t.bonusTrophies > 0)) {
+      const bonusLabel = [t.bonusCoins > 0 ? `+${t.bonusCoins} bonus coins` : '', t.bonusTrophies > 0 ? `+${t.bonusTrophies} bonus trophies` : '']
+        .filter(Boolean)
+        .join('  ·  ');
+      this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 160, bonusLabel, FONT.small).setOrigin(0.5);
+    }
   }
 
   private buildStatsPanel(result: RaceResultData): void {
@@ -107,7 +125,21 @@ export class ResultsScene extends Phaser.Scene {
       ? CAREER_STAGES[CAREER_STAGES.findIndex((s) => s.id === result.config.careerStageId) + 1]
       : undefined;
 
-    if (nextStage) {
+    if (result.tournament && !result.tournament.isFinalRound) {
+      new Button(this, GAME_WIDTH / 2, y, 'Next Race →', () => {
+        const t = result.config.tournament!;
+        this.scene.start(SceneKeys.RaceSetup, {
+          preset: {
+            mode: 'tournament', difficulty: result.config.difficulty, opponentCount: result.config.opponentCount,
+            tournament: { round: t.round + 1, totalRounds: t.totalRounds, trackIds: t.trackIds, pointsSoFar: result.tournament!.totalPoints },
+          },
+        });
+      }, { width: 220, height: 54 });
+    } else if (result.tournament) {
+      new Button(this, GAME_WIDTH / 2, y, 'Finish Tournament', () => {
+        this.scene.start(SceneKeys.ModeSelect);
+      }, { width: 220, height: 54 });
+    } else if (nextStage) {
       new Button(this, GAME_WIDTH / 2, y, 'Next Stage', () => {
         this.scene.start(SceneKeys.RaceSetup, {
           preset: {

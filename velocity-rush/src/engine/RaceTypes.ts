@@ -1,4 +1,5 @@
 import type { Difficulty } from '../utils/Constants';
+import type { TournamentState } from './Tournament';
 
 export type RaceMode =
   | 'quickRace'
@@ -22,6 +23,7 @@ export interface RaceConfig {
   lapsOverride?: number;
   careerStageId?: string;
   eliminationIntervalSec?: number;
+  tournament?: TournamentState;
 }
 
 export const RACE_MODE_LABEL: Record<RaceMode, string> = {
@@ -56,6 +58,15 @@ export interface RaceResultData {
   rewardBreakdown: { label: string; coins: number; xp: number }[];
   careerStagePassed?: boolean;
   newAchievements: string[];
+  tournament?: {
+    round: number;
+    totalRounds: number;
+    pointsThisRound: number;
+    totalPoints: number;
+    isFinalRound: boolean;
+    bonusCoins: number;
+    bonusTrophies: number;
+  };
 }
 
 export const RACE_MODE_DESCRIPTIONS: Record<RaceMode, string> = {

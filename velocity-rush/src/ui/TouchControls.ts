@@ -25,6 +25,9 @@ export class TouchControls {
 
   constructor(private scene: Phaser.Scene) {
     this.container = scene.add.container(0, 0).setDepth(DEPTHS.touchControls).setScrollFactor(0);
+    // See RaceHUD's offMainCamera() for why: scrollFactor(0) input hit-testing breaks once
+    // the main camera has scrolled, so these are rendered by RaceScene's dedicated UI camera.
+    scene.cameras.main.ignore(this.container);
     this.wheelCenter = { x: 140, y: GAME_HEIGHT - 150 };
 
     this.wheelBase = scene.add.circle(this.wheelCenter.x, this.wheelCenter.y, this.wheelRadius, 0x000000, 0.28).setStrokeStyle(3, 0xffffff, 0.35);

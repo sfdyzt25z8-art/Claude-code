@@ -42,6 +42,12 @@ export function createGameConfig(parent: string): Phaser.Types.Core.GameConfig {
       activePointers: 3,
       gamepad: true,
     },
+    // All audio is our own Web Audio synthesis (see src/audio) — disable
+    // Phaser's built-in Sound Manager so it doesn't spin up a second, unused
+    // AudioContext at boot.
+    audio: {
+      noAudio: true,
+    },
     render: {
       antialias: true,
       pixelArt: false,

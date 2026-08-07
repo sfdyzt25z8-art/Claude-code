@@ -21,29 +21,44 @@ export class RaceHUD {
   private container: Phaser.GameObjects.Container;
 
   constructor(private scene: Phaser.Scene) {
-    this.container = scene.add.container(0, 0).setDepth(DEPTHS.hud).setScrollFactor(0);
+    this.container = this.offMainCamera(scene.add.container(0, 0)).setDepth(DEPTHS.hud).setScrollFactor(0);
 
-    drawPanel(scene, 20, GAME_HEIGHT - 110, 230, 90, { alpha: 0.55 }).setScrollFactor(0).setDepth(DEPTHS.hud);
-    this.speedText = scene.add.text(35, GAME_HEIGHT - 100, '0', { ...FONT.h1, fontSize: '42px' }).setScrollFactor(0).setDepth(DEPTHS.hud);
-    scene.add.text(35, GAME_HEIGHT - 40, 'KM/H', FONT.small).setScrollFactor(0).setDepth(DEPTHS.hud);
+    this.offMainCamera(drawPanel(scene, 20, GAME_HEIGHT - 110, 230, 90, { alpha: 0.55 })).setScrollFactor(0).setDepth(DEPTHS.hud);
+    this.speedText = this.offMainCamera(scene.add.text(35, GAME_HEIGHT - 100, '0', { ...FONT.h1, fontSize: '42px' })).setScrollFactor(0).setDepth(DEPTHS.hud);
+    this.offMainCamera(scene.add.text(35, GAME_HEIGHT - 40, 'KM/H', FONT.small)).setScrollFactor(0).setDepth(DEPTHS.hud);
 
-    this.nitroBar = new ProgressBar(scene, 130, GAME_HEIGHT - 130, 100, 12, 0xff5f9d);
+    this.nitroBar = this.offMainCamera(new ProgressBar(scene, 130, GAME_HEIGHT - 130, 100, 12, 0xff5f9d));
     this.nitroBar.setScrollFactor(0).setDepth(DEPTHS.hud);
-    scene.add.text(130, GAME_HEIGHT - 148, 'NITRO', { ...FONT.small, fontSize: '12px' }).setScrollFactor(0).setDepth(DEPTHS.hud);
+    this.offMainCamera(scene.add.text(130, GAME_HEIGHT - 148, 'NITRO', { ...FONT.small, fontSize: '12px' })).setScrollFactor(0).setDepth(DEPTHS.hud);
 
-    this.positionText = scene.add.text(GAME_WIDTH / 2, 24, '1 / 1', { ...FONT.h2, fontSize: '30px' }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTHS.hud);
-    this.lapText = scene.add.text(GAME_WIDTH / 2, 60, 'LAP 1 / 3', FONT.small).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTHS.hud);
-    this.modeInfoText = scene.add.text(GAME_WIDTH / 2, 84, '', { ...FONT.small, color: '#ffc371' }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTHS.hud);
+    this.positionText = this.offMainCamera(scene.add.text(GAME_WIDTH / 2, 24, '1 / 1', { ...FONT.h2, fontSize: '30px' })).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTHS.hud);
+    this.lapText = this.offMainCamera(scene.add.text(GAME_WIDTH / 2, 60, 'LAP 1 / 3', FONT.small)).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTHS.hud);
+    this.modeInfoText = this.offMainCamera(scene.add.text(GAME_WIDTH / 2, 84, '', { ...FONT.small, color: '#ffc371' })).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTHS.hud);
 
-    this.driftScoreText = scene.add.text(GAME_WIDTH / 2, 110, '', { ...FONT.h3, color: '#7fdcff' }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTHS.hud).setVisible(false);
+    this.driftScoreText = this.offMainCamera(scene.add.text(GAME_WIDTH / 2, 110, '', { ...FONT.h3, color: '#7fdcff' })).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTHS.hud).setVisible(false);
 
-    this.countdownText = scene.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, '', { ...FONT.h1, fontSize: '96px' })
+    this.countdownText = this.offMainCamera(
+      scene.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, '', { ...FONT.h1, fontSize: '96px' }),
+    )
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(DEPTHS.overlay);
 
-    this.minimapGfx = scene.add.graphics().setScrollFactor(0).setDepth(DEPTHS.hud);
+    this.minimapGfx = this.offMainCamera(scene.add.graphics()).setScrollFactor(0).setDepth(DEPTHS.hud);
+  }
+
+  /**
+   * HUD elements use scrollFactor(0) to stay fixed on screen while the main
+   * camera scrolls/zooms to follow the car. Phaser's input hit-testing does
+   * not correctly account for scrollFactor once a camera has scrolled, which
+   * would make every HUD/overlay button silently unclickable — so these
+   * elements are rendered by a dedicated, non-scrolling UI camera instead
+   * (set up in RaceScene) and explicitly hidden from the main camera to
+   * avoid being drawn twice.
+   */
+  private offMainCamera<T extends Phaser.GameObjects.GameObject>(obj: T): T {
+    this.scene.cameras.main.ignore(obj);
+    return obj;
   }
 
   setSpeed(kmh: number): void {
@@ -122,7 +137,7 @@ export class RaceHUD {
     for (const v of vehicles) {
       const x = this.minimapCenter.x + (v.state.position.x - this.minimapWorldCenter.x) * this.minimapScale;
       const y = this.minimapCenter.y + (v.state.position.y - this.minimapWorldCenter.y) * this.minimapScale;
-      const dot = this.scene.add.circle(x, y, v.isPlayer ? 5 : 3.5, v.isPlayer ? COLORS.accentPrimary : v.isPolice ? COLORS.danger : COLORS.accentGold);
+      const dot = this.offMainCamera(this.scene.add.circle(x, y, v.isPlayer ? 5 : 3.5, v.isPlayer ? COLORS.accentPrimary : v.isPolice ? COLORS.danger : COLORS.accentGold));
       dot.setScrollFactor(0).setDepth(DEPTHS.hud + 1);
       this.minimapDots.push(dot);
     }

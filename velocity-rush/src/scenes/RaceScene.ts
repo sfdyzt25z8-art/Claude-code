@@ -26,8 +26,10 @@ import { saveManager } from '../save/SaveManager';
 import { settingsManager } from '../save/SettingsManager';
 import { economyManager } from '../economy/EconomyManager';
 import { achievementManager } from '../economy/AchievementManager';
+import { getAchievement } from '../economy/AchievementData';
 import { liveOpsManager } from '../economy/DailyRewards';
 import { getCareerStage } from '../engine/CareerData';
+import { maxPossiblePoints, pointsForPosition } from '../engine/Tournament';
 import { audioManager } from '../audio/AudioManager';
 import { pickWeighted, distance } from '../utils/MathUtils';
 
@@ -46,6 +48,7 @@ export class RaceScene extends Phaser.Scene {
   private collisionSystem = new CollisionSystem();
   private hud!: RaceHUD;
   private controls!: InputManager;
+  private uiCamera!: Phaser.Cameras.Scene2D.Camera;
 
   private raceState: 'countdown' | 'racing' | 'finished' = 'countdown';
   private countdownStep = 3;
@@ -101,6 +104,7 @@ export class RaceScene extends Phaser.Scene {
     this.setupEnvironment(track);
     this.spawnVehicles(track);
     this.setupCamera();
+    this.setupUiCamera();
 
     this.hud = new RaceHUD(this);
     this.hud.buildMinimap(this.geo);
@@ -212,6 +216,30 @@ export class RaceScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player.visual.container, true, 0.12, 0.12);
   }
 
+  /**
+   * A second camera dedicated to screen-fixed UI (HUD, touch controls, pause
+   * overlay). Those elements use scrollFactor(0) to stay put while the main
+   * camera scrolls/zooms with the car — which renders correctly, but Phaser's
+   * input hit-testing does not correctly account for scrollFactor once a
+   * camera has non-zero scroll, silently making every HUD/overlay button
+   * unclickable. This camera never scrolls or zooms, so hit-testing on it is
+   * always screen-accurate; it renders everything except the world objects
+   * (listed below), while the main camera is told to ignore the UI objects
+   * themselves (see RaceHUD.offMainCamera / TouchControls / pause overlay).
+   */
+  private setupUiCamera(): void {
+    this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
+    const worldObjects: Phaser.GameObjects.GameObject[] = [
+      this.built.roadImage,
+      ...this.built.obstacles.map((o) => o.sprite),
+      ...this.vehicles.map((v) => v.visual.container),
+      ...this.weatherEmitters,
+    ];
+    if (this.fogOverlay) worldObjects.push(this.fogOverlay);
+    this.uiCamera.ignore(worldObjects);
+    this.uiCamera.ignore(this.built.decorationLayer);
+  }
+
   private spawnVehicles(track: NonNullable<ReturnType<typeof getTrackById>>): void {
     const playerCar = getCarById(this.config.carId) ?? CAR_DATA[0];
     const upgrades = upgradeManager.getState(playerCar.id);
@@ -283,6 +311,7 @@ export class RaceScene extends Phaser.Scene {
       lap: 1,
       checkpointsPassed: new Set(),
       lastCheckpointIndex: 0,
+      lastProgress: 0,
       finished: false,
       finishTimeMs: null,
       lapTimes: [],
@@ -465,6 +494,7 @@ export class RaceScene extends Phaser.Scene {
     ghost.setAlpha(0.28);
     ghost.setScale(vehicle.visual.container.scaleX, vehicle.visual.container.scaleY);
     ghost.setDepth(DEPTHS.vehicleFx);
+    this.uiCamera.ignore(ghost); // world-space effect — only the scrolling main camera should draw it
     this.tweens.add({ targets: ghost, alpha: 0, duration: 220, onComplete: () => ghost.destroy() });
   }
 
@@ -600,11 +630,13 @@ export class RaceScene extends Phaser.Scene {
       this.togglePause();
       this.scene.restart({ config: this.config });
     }, { width: 260, height: 50, variant: 'secondary' });
-    const quit = new Button(this, cx, cy + 70, 'Quit to Menu', () => {
+    const isTestDrive = this.config.mode === 'testDrive';
+    const quit = new Button(this, cx, cy + 70, isTestDrive ? 'Quit to Garage' : 'Quit to Menu', () => {
       this.togglePause();
-      this.scene.start(SceneKeys.MainMenu);
+      this.scene.start(isTestDrive ? SceneKeys.Garage : SceneKeys.MainMenu);
     }, { width: 260, height: 50, variant: 'danger' });
     container.add([dim, panel, title, resume, restart, quit]);
+    this.cameras.main.ignore(container); // see setupUiCamera() — keeps it on the non-scrolled UI camera
     this.pauseOverlay = container;
   }
 
@@ -680,7 +712,29 @@ export class RaceScene extends Phaser.Scene {
       d.statistics.mileageMeters += Math.round(this.player.state.totalDistance / 10);
     });
 
+    let tournamentResult: RaceResultData['tournament'];
+    if (this.config.tournament) {
+      const t = this.config.tournament;
+      const pointsThisRound = outcome === 'finished' ? pointsForPosition(position) : 0;
+      const totalPoints = t.pointsSoFar + pointsThisRound;
+      const isFinalRound = t.round >= t.totalRounds;
+      let bonusCoins = 0;
+      let bonusTrophies = 0;
+      if (isFinalRound) {
+        const maxPoints = maxPossiblePoints(t.totalRounds);
+        bonusCoins = totalPoints * 120;
+        bonusTrophies = totalPoints >= maxPoints * 0.8 ? 5 : totalPoints >= maxPoints * 0.5 ? 2 : 0;
+        if (bonusCoins > 0) economyManager.addCoins(bonusCoins);
+        if (bonusTrophies > 0) economyManager.addTrophies(bonusTrophies);
+      }
+      tournamentResult = { round: t.round, totalRounds: t.totalRounds, pointsThisRound, totalPoints, isFinalRound, bonusCoins, bonusTrophies };
+    }
+
     const newAchievements = achievementManager.checkAll();
+    const achievementBonusCoins = newAchievements.reduce((sum, id) => sum + (getAchievement(id)?.rewardCoins ?? 0), 0);
+    const rewardBreakdown = achievementBonusCoins > 0
+      ? [...reward.breakdown, { label: `${newAchievements.length} achievement unlocked`, coins: achievementBonusCoins, xp: 0 }]
+      : reward.breakdown;
 
     const resultData: RaceResultData = {
       config: this.config,
@@ -694,12 +748,13 @@ export class RaceScene extends Phaser.Scene {
       stuntScore: this.pendingStuntScore,
       distanceMeters: Math.round(this.player.state.totalDistance / 10),
       cleanDriving,
-      coinsEarned: reward.coins,
+      coinsEarned: reward.coins + achievementBonusCoins,
       xpEarned: reward.xp,
       trophiesEarned: reward.trophies,
-      rewardBreakdown: reward.breakdown,
+      rewardBreakdown,
       careerStagePassed,
       newAchievements,
+      tournament: tournamentResult,
     };
 
     this.time.delayedCall(600, () => this.scene.start(SceneKeys.Results, { result: resultData }));
