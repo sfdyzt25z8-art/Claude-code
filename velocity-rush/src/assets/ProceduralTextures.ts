@@ -47,6 +47,7 @@ export const TEX = {
   coin: 'tex_coin',
   vignette: 'tex_vignette',
   whitePixel: 'tex_white_pixel',
+  steeringWheel: 'tex_steering_wheel',
 } as const;
 
 export function generateAllTextures(scene: Phaser.Scene): void {
@@ -59,6 +60,47 @@ export function generateAllTextures(scene: Phaser.Scene): void {
   buildDecorations(scene);
   buildObstacles(scene);
   buildMisc(scene);
+  buildSteeringWheel(scene);
+}
+
+function buildSteeringWheel(scene: Phaser.Scene): void {
+  const size = 148;
+  const r = size / 2;
+  const rimThickness = 14;
+  const hubRadius = 20;
+  const wheel = g(scene);
+
+  // Outer rim (a thick stroked ring, not a filled disc)
+  wheel.lineStyle(rimThickness, 0xffffff, 1);
+  wheel.strokeCircle(r, r, r - rimThickness / 2);
+
+  // Three spokes connecting the hub to the rim
+  wheel.fillStyle(0xffffff, 1);
+  for (let i = 0; i < 3; i++) {
+    const angle = (i / 3) * Math.PI * 2 - Math.PI / 2;
+    const spokeLength = r - rimThickness + 4;
+    const spokeWidth = 12;
+    const dx = Math.cos(angle);
+    const dy = Math.sin(angle);
+    const nx = -dy;
+    const ny = dx;
+    const inner = { x: r + nx * spokeWidth, y: r + ny * spokeWidth };
+    const inner2 = { x: r - nx * spokeWidth, y: r - ny * spokeWidth };
+    const outer = { x: r + dx * spokeLength, y: r + dy * spokeLength };
+    wheel.fillTriangle(inner.x, inner.y, inner2.x, inner2.y, outer.x, outer.y);
+  }
+
+  // Center hub
+  wheel.fillStyle(0x1a1d2e, 1);
+  wheel.fillCircle(r, r, hubRadius);
+  wheel.lineStyle(2, 0xffffff, 0.5);
+  wheel.strokeCircle(r, r, hubRadius);
+
+  // Top grip marker so the wheel's rotation is easy to read at a glance
+  wheel.fillStyle(0xff5f6d, 1);
+  wheel.fillCircle(r, rimThickness / 2 + 3, 5);
+
+  finalize(wheel, scene, TEX.steeringWheel, size, size);
 }
 
 function buildCar(scene: Phaser.Scene): void {
