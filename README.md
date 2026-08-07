@@ -35,3 +35,13 @@ loop. Built with Phaser 3, TypeScript, and Vite — every graphic and sound is g
 with no external art or audio assets.
 
 - App source: [`velocity-rush/`](velocity-rush/README.md)
+
+## FocusFlow
+
+A productivity app for goals, tasks, habits, and focus — create goals, break them into
+tasks, organize your day, track habit streaks, run a Pomodoro-style focus timer, review
+productivity statistics, and get suggestions from a built-in AI Coach (with a local,
+data-aware fallback when no API key is configured). Built with React, TypeScript, Vite,
+Tailwind CSS, and Zustand; all data is stored locally in the browser.
+
+- App source: [`focusflow/`](focusflow/README.md)
