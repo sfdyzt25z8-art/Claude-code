@@ -1,0 +1,25 @@
+{
+  "name": "velocity-rush",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Velocity Rush - a modern arcade car racing game built with Phaser 3 + TypeScript",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"(no linter configured — typecheck is the source of truth)\""
+  },
+  "dependencies": {
+    "phaser": "^3.80.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "vite-plugin-pwa": "^0.20.5"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

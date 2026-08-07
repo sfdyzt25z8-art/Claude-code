@@ -25,3 +25,13 @@ invest, and climb the leaderboard to become the richest CEO in the world. Built 
 TypeScript, Vite, Tailwind CSS, and Firebase.
 
 - App source: [`ceo-empire/`](ceo-empire/README.md)
+
+## Velocity Rush
+
+A modern arcade car racing game — 20 cars, 15 tracks, 11 game modes (Career, Quick Race, Time
+Trial, Drift, Checkpoint, Endless Highway, Elimination, Tournament, Police Chase, Test Drive,
+Multiplayer), AI opponents, upgrades, cosmetic customization, and a full save/economy/progression
+loop. Built with Phaser 3, TypeScript, and Vite — every graphic and sound is generated at runtime,
+with no external art or audio assets.
+
+- App source: [`velocity-rush/`](velocity-rush/README.md)
