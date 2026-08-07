@@ -6,6 +6,7 @@ on:
     paths:
       - "ceo-empire/**"
       - "halftime-snack-preorder/**"
+      - "velocity-rush/**"
       - ".github/workflows/pages-deploy.yml"
   workflow_dispatch:
 
@@ -29,7 +30,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: ceo-empire/package-lock.json
+          cache-dependency-path: |
+            ceo-empire/package-lock.json
+            velocity-rush/package-lock.json
 
       - name: Build CEO Empire
         working-directory: ceo-empire
@@ -48,12 +51,19 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
 
-      # CEO Empire is the root site; static no-build apps are published under their own subpath.
+      - name: Build Velocity Rush
+        working-directory: velocity-rush
+        run: |
+          npm ci
+          npm run build
+
+      # CEO Empire is the root site; other apps are published under their own subpath.
       - name: Assemble combined Pages site
         run: |
-          mkdir -p site/halftime-snack-preorder
+          mkdir -p site/halftime-snack-preorder site/velocity-rush
           cp -r ceo-empire/dist/. site/
           cp halftime-snack-preorder/index.html halftime-snack-preorder/app.js halftime-snack-preorder/style.css site/halftime-snack-preorder/
+          cp -r velocity-rush/dist/. site/velocity-rush/
 
       - uses: actions/upload-pages-artifact@v3
         with:
