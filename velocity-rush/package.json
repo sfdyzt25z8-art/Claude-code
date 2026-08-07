@@ -12,9 +12,11 @@
     "lint": "echo \"(no linter configured — typecheck is the source of truth)\""
   },
   "dependencies": {
-    "phaser": "^3.80.1"
+    "phaser": "^3.80.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
+    "@types/three": "^0.185.4",
     "typescript": "^5.5.4",
     "vite": "^5.4.2",
     "vite-plugin-pwa": "^0.20.5"

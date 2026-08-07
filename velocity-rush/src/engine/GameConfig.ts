@@ -11,6 +11,7 @@ import { CareerScene } from '../scenes/CareerScene';
 import { ModeSelectScene } from '../scenes/ModeSelectScene';
 import { RaceSetupScene } from '../scenes/RaceSetupScene';
 import { RaceScene } from '../scenes/RaceScene';
+import { Race3DBridgeScene } from '../scenes/Race3DBridgeScene';
 import { ResultsScene } from '../scenes/ResultsScene';
 import { LeaderboardScene } from '../scenes/LeaderboardScene';
 import { ProfileScene } from '../scenes/ProfileScene';
@@ -70,6 +71,7 @@ export function createGameConfig(parent: string): Phaser.Types.Core.GameConfig {
       ModeSelectScene,
       RaceSetupScene,
       RaceScene,
+      Race3DBridgeScene,
       ResultsScene,
       LeaderboardScene,
       ProfileScene,

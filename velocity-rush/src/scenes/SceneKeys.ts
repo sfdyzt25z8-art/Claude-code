@@ -10,6 +10,7 @@ export const SceneKeys = {
   ModeSelect: 'ModeSelectScene',
   RaceSetup: 'RaceSetupScene',
   Race: 'RaceScene',
+  Race3D: 'Race3DBridgeScene',
   Results: 'ResultsScene',
   Leaderboard: 'LeaderboardScene',
   Profile: 'ProfileScene',

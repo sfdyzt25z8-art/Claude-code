@@ -248,7 +248,11 @@ export class RaceSetupScene extends Phaser.Scene {
         eliminationIntervalSec: this.preset.eliminationIntervalSec,
       };
       audioManager.uiConfirm();
-      this.scene.start(SceneKeys.Race, { config });
+      // Quick Race is the first mode wired through the new 3D driving view (see
+      // src/three/) — every other mode still plays through the 2D RaceScene until
+      // they're individually wired up in a follow-up pass.
+      const use3D = config.mode === 'quickRace';
+      this.scene.start(use3D ? SceneKeys.Race3D : SceneKeys.Race, { config });
     }, { width: 320, height: 60, disabled: !canStart });
     this.add_(btn);
   }

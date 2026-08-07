@@ -5,14 +5,20 @@ import type { AIController } from '../ai/AIController';
 import type { CarVisual } from '../ui/CarPreview';
 import type { TrackGeometry } from '../tracks/TrackGeometry';
 
-export interface RaceVehicle {
+/**
+ * Everything about a race participant except how it's rendered. Deliberately
+ * has zero dependency on Phaser (or any other rendering engine) so the same
+ * lap/standings logic below works for both the 2D Phaser race view
+ * (`RaceVehicle`, which adds a Phaser `visual`) and the 3D Three.js race view
+ * (`src/three/RaceVehicle3D.ts`, which adds a `THREE.Group` mesh instead).
+ */
+export interface RaceVehicleCore {
   id: string;
   isPlayer: boolean;
   isPolice?: boolean;
   car: CarDefinition;
   perf: VehiclePerformance;
   state: VehicleState;
-  visual: CarVisual;
   radius: number;
   ai?: AIController;
   lap: number;
@@ -28,12 +34,16 @@ export interface RaceVehicle {
   totalRaceProgress: number; // laps completed + fractional progress, used for ranking
 }
 
+export interface RaceVehicle extends RaceVehicleCore {
+  visual: CarVisual;
+}
+
 /**
  * Call once per frame per vehicle after its physics state has been updated.
  * Tracks sequential checkpoint passage (to prevent lap-skipping) and detects
  * lap completion. Returns true if a lap was just completed.
  */
-export function updateLapTracking(vehicle: RaceVehicle, geo: TrackGeometry, nowMs: number): boolean {
+export function updateLapTracking<T extends RaceVehicleCore>(vehicle: T, geo: TrackGeometry, nowMs: number): boolean {
   const { progress } = geo.worldToTrack(vehicle.state.position);
   const checkpointCount = geo.checkpoints.length;
   const currentCheckpoint = Math.floor(progress * checkpointCount);
@@ -75,7 +85,7 @@ export function updateLapTracking(vehicle: RaceVehicle, geo: TrackGeometry, nowM
 }
 
 /** Ranks vehicles by total race progress (laps + track position), leader first. */
-export function computeStandings(vehicles: RaceVehicle[]): RaceVehicle[] {
+export function computeStandings<T extends RaceVehicleCore>(vehicles: T[]): T[] {
   return [...vehicles].sort((a, b) => {
     if (a.finished !== b.finished) return a.finished ? -1 : 1;
     if (a.finished && b.finished) return (a.finishTimeMs ?? 0) - (b.finishTimeMs ?? 0);
