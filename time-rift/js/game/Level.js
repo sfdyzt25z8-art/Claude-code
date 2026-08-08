@@ -36,7 +36,12 @@
       });
 
       this.switches = (def.switches || []).map(function (s) {
-        return { id: s.id, x: s.x, y: s.y, w: s.w, h: s.h, mode: s.mode || 'pressure', active: false };
+        return {
+          id: s.id, x: s.x, y: s.y, w: s.w, h: s.h, mode: s.mode || 'pressure', active: false,
+          // 'timed' switches: a fresh press (re)starts a countdown; the door stays open
+          // until it runs out, regardless of whether anything is still standing on it.
+          duration: s.duration || 5, timer: 0, wasOverlapping: false
+        };
       });
 
       this.doors = (def.doors || []).map(function (d) {
@@ -61,7 +66,7 @@
     resetRun() {
       this.crystals.forEach(function (c) { c.collected = false; });
       this.enemies.forEach(function (e) { e.reset(); });
-      this.switches.forEach(function (s) { s.active = false; });
+      this.switches.forEach(function (s) { s.active = false; s.timer = 0; s.wasOverlapping = false; });
       this.doors.forEach(function (d) { d.open = false; });
     }
 
@@ -101,14 +106,27 @@
       });
 
       // Pressure switches: active while any current entity (player or clone) overlaps.
+      // Timed switches: a fresh press (re)starts a countdown; stays active until it expires.
       this.switches.forEach(function (sw) {
         if (sw.mode === 'lever') return; // toggled explicitly via tryInteract
-        var active = false;
+        var overlapping = false;
         for (var i = 0; i < weightSources.length; i++) {
-          if (Physics.rectsOverlap(sw, weightSources[i].getRect())) { active = true; break; }
+          if (Physics.rectsOverlap(sw, weightSources[i].getRect())) { overlapping = true; break; }
         }
-        if (active && !sw.active) Audio_.switchOn();
-        sw.active = active;
+        if (sw.mode === 'timed') {
+          if (overlapping && !sw.wasOverlapping) {
+            sw.timer = sw.duration;
+            Audio_.switchOn();
+          }
+          sw.wasOverlapping = overlapping;
+          if (sw.timer > 0) sw.timer = Math.max(0, sw.timer - dt);
+          // Guard against a floating-point residual (e.g. 1e-14) reading as "still active"
+          // for one extra frame after the countdown has effectively reached zero.
+          sw.active = sw.timer > 1e-6;
+        } else {
+          if (overlapping && !sw.active) Audio_.switchOn();
+          sw.active = overlapping;
+        }
       });
 
       // Doors follow their linked switches.
@@ -227,6 +245,15 @@
         ctx.shadowBlur = sw.active ? 12 : 0;
         ctx.fillRect(sw.x - camera.x, sw.y - camera.y + sw.h * 0.4, sw.w, sw.h * 0.6);
         ctx.restore();
+
+        // Timed switches show a shrinking bar so the player can see the door about to close.
+        if (sw.mode === 'timed' && sw.active) {
+          var pct = Math.max(0, sw.timer / sw.duration);
+          ctx.fillStyle = 'rgba(0,0,0,0.5)';
+          ctx.fillRect(sw.x - camera.x, sw.y - camera.y - 8, sw.w, 4);
+          ctx.fillStyle = '#ffd166';
+          ctx.fillRect(sw.x - camera.x, sw.y - camera.y - 8, sw.w * pct, 4);
+        }
       });
 
       // Doors.
