@@ -76,6 +76,16 @@ export const THEME_PALETTES: Record<TrackTheme, ThemePalette> = {
     decorationPrimary: 0x7a5a3a, decorationSecondary: 0xdec25a,
     skyTop: 0x6ba0d9, skyBottom: 0xbfe0f0, fogColor: 0xd6ecf5,
   },
+  f1street: {
+    surface: 0x24262e, surfaceLine: 0xffffff, offTrack: 0xb9bec4, offTrackDetail: 0x9aa0a8,
+    decorationPrimary: 0xc9303b, decorationSecondary: 0x2b2f3a,
+    skyTop: 0x3a6fa8, skyBottom: 0x9fc7e0, fogColor: 0xc3dceb,
+  },
+  f1speed: {
+    surface: 0x2a2c33, surfaceLine: 0xff2d2d, offTrack: 0x4a7a3a, offTrackDetail: 0x3a6430,
+    decorationPrimary: 0xe9f3ff, decorationSecondary: 0xff2d2d,
+    skyTop: 0x2f5a9c, skyBottom: 0x8fbde8, fogColor: 0xbcd8ee,
+  },
 };
 
 export const THEME_OBSTACLES: Record<TrackTheme, ObstacleType[]> = {
@@ -94,4 +104,6 @@ export const THEME_OBSTACLES: Record<TrackTheme, ObstacleType[]> = {
   airport: ['cone', 'barrier', 'signpost'],
   stadium: ['cone', 'barrier'],
   countryside: ['tree', 'rock', 'signpost'],
+  f1street: ['barrier', 'signpost'],
+  f1speed: ['barrier', 'cone'],
 };

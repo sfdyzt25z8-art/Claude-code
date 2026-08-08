@@ -741,6 +741,7 @@ export class RaceScene extends Phaser.Scene {
       outcome,
       position,
       totalRacers,
+      penaltySeconds: 0, // penalty system is 3D-view-only (see Race3DScene)
       raceTimeMs,
       lapTimes: this.player.lapTimes,
       bestLapMs: this.player.bestLapTimeMs,

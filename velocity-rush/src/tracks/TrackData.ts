@@ -144,6 +144,22 @@ const SEEDS: TrackSeed[] = [
     weatherOptions: [{ weather: 'clear', weight: 7 }, { weather: 'rain', weight: 3 }],
     timeOfDay: 'day', unlockLevel: 12,
   },
+  {
+    id: 'grand_prix_street', name: 'Monteverde Street Grand Prix', theme: 'f1street',
+    description: 'A tight, unforgiving street circuit lined with barriers — precision over power.',
+    laps: 4, pointCount: 13, radiusX: 1300, radiusY: 950, irregularity: 0.4, angleJitter: 0.34,
+    baseWidth: 170, obstacleCount: 0, jumpCount: 0, shortcutCount: 1,
+    weatherOptions: [{ weather: 'clear', weight: 8 }, { weather: 'rain', weight: 2 }],
+    timeOfDay: 'day', unlockLevel: 7,
+  },
+  {
+    id: 'grand_prix_speedway', name: 'Velocity Park Grand Prix', theme: 'f1speed',
+    description: 'A flowing, high-speed grand prix circuit built for flat-out top speed.',
+    laps: 5, pointCount: 9, radiusX: 2000, radiusY: 1300, irregularity: 0.16, angleJitter: 0.14,
+    baseWidth: 240, obstacleCount: 0, jumpCount: 0, shortcutCount: 1,
+    weatherOptions: [{ weather: 'clear', weight: 9 }, { weather: 'rain', weight: 1 }],
+    timeOfDay: 'day', unlockLevel: 15,
+  },
 ];
 
 function buildTrack(seed: TrackSeed): TrackDefinition {

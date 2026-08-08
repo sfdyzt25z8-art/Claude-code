@@ -4,11 +4,13 @@ import { CSS_COLORS } from '../utils/Constants';
 const MAX_WHEEL_ROTATION_DEG = 150; // matches TouchControls' lock-to-lock feel
 
 /**
- * DOM/CSS on-screen controls for the 3D driving view — visually matches the
- * Phaser touch steering wheel (grab-anywhere-on-the-rim, twist, spring back
- * on release) plus gas/brake/handbrake/nitro buttons, but built from native
- * elements + pointer events since the 3D view runs outside Phaser's canvas
- * and input system.
+ * DOM/CSS on-screen controls for the 3D driving view — an F1-style steering
+ * wheel (grab-anywhere-on-the-rim, twist, spring back on release) plus real
+ * gas/brake pedals (press-and-depress, not round buttons) and small
+ * handbrake/nitro buttons. Built from native elements + pointer events since
+ * the 3D view runs outside Phaser's canvas and input system. Sized and
+ * positioned with generous touch targets for tablets (iPad) as well as
+ * phones.
  */
 export class TouchControls3D {
   readonly state: TouchState = { throttle: 0, steer: 0, handbrake: false, nitro: false };
@@ -27,10 +29,10 @@ export class TouchControls3D {
     parent.appendChild(this.root);
 
     this.wheel = this.buildWheel();
-    this.buildButton('GAS', '10%', '16%', 64, CSS_COLORS.accentPrimary, 'throttle', 1);
-    this.buildButton('BRAKE', '10%', '38%', 54, CSS_COLORS.accentSecondary, 'throttle', -1);
-    this.buildButton('E-BRAKE', '32%', '8%', 50, CSS_COLORS.accentGold, 'handbrake', 1);
-    this.buildButton('NITRO', '32%', '30%', 58, '#ff5f9d', 'nitro', 1);
+    this.buildPedal('BRAKE', 128, CSS_COLORS.accentSecondary, 'throttle', -1);
+    this.buildPedal('GAS', 24, CSS_COLORS.accentPrimary, 'throttle', 1);
+    this.buildButton('E-BRK', '158px', '210px', 48, CSS_COLORS.accentGold, 'handbrake', 1);
+    this.buildButton('NITRO', '60px', '220px', 52, '#ff5f9d', 'nitro', 1);
 
     window.addEventListener('pointermove', this.onPointerMove);
     window.addEventListener('pointerup', this.onPointerUp);
@@ -45,14 +47,15 @@ export class TouchControls3D {
     `;
     const wheel = document.createElement('div');
     wheel.style.cssText = 'position:absolute; inset:8px; border-radius:50%; will-change: transform;';
+    // Flat-bottom F1-style wheel: thick rim (open at the bottom), central digital-readout hub, two paddle-ish spokes.
     wheel.innerHTML = `
       <svg viewBox="0 0 148 148" width="100%" height="100%">
-        <circle cx="74" cy="74" r="62" fill="none" stroke="${CSS_COLORS.textPrimary}" stroke-width="12" opacity="0.85" />
-        <circle cx="74" cy="74" r="24" fill="#171d42" stroke="${CSS_COLORS.textPrimary}" stroke-width="3" />
-        <rect x="70" y="10" width="8" height="20" rx="3" fill="${CSS_COLORS.accentSecondary}" />
-        <line x1="74" y1="40" x2="74" y2="60" stroke="${CSS_COLORS.textPrimary}" stroke-width="10" />
-        <line x1="30" y1="98" x2="55" y2="82" stroke="${CSS_COLORS.textPrimary}" stroke-width="10" />
-        <line x1="118" y1="98" x2="93" y2="82" stroke="${CSS_COLORS.textPrimary}" stroke-width="10" />
+        <path d="M 20 96 A 54 54 0 1 1 128 96" fill="none" stroke="${CSS_COLORS.textPrimary}" stroke-width="13" stroke-linecap="round" opacity="0.9" />
+        <line x1="20" y1="96" x2="20" y2="108" stroke="${CSS_COLORS.textPrimary}" stroke-width="13" stroke-linecap="round" opacity="0.9" />
+        <line x1="128" y1="96" x2="128" y2="108" stroke="${CSS_COLORS.textPrimary}" stroke-width="13" stroke-linecap="round" opacity="0.9" />
+        <rect x="46" y="58" width="56" height="32" rx="6" fill="#171d42" stroke="${CSS_COLORS.accentPrimary}" stroke-width="2" />
+        <rect x="70" y="10" width="8" height="18" rx="3" fill="${CSS_COLORS.accentSecondary}" />
+        <line x1="74" y1="40" x2="74" y2="58" stroke="${CSS_COLORS.textPrimary}" stroke-width="9" />
       </svg>
     `;
     base.appendChild(wheel);
@@ -119,6 +122,47 @@ export class TouchControls3D {
     this.springFrame = requestAnimationFrame(step);
   }
 
+  /** A real gas/brake pedal: a foot-pad you press, which visibly depresses and brightens — not a round button. */
+  private buildPedal(label: string, right: number, color: string, field: 'throttle', onValue: number): void {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `position:absolute; right:${right}px; bottom:24px; width:88px; height:170px; pointer-events:auto; touch-action:none;`;
+    this.root.appendChild(wrap);
+
+    // The pivot arm below the pad, like a real pedal box — purely cosmetic.
+    const arm = document.createElement('div');
+    arm.style.cssText = 'position:absolute; left:50%; bottom:-10px; width:14px; height:24px; transform:translateX(-50%); background:rgba(20,22,30,0.8); border-radius:0 0 6px 6px;';
+    wrap.appendChild(arm);
+
+    const pad = document.createElement('div');
+    pad.style.cssText = `
+      position:absolute; inset:0; border-radius:16px;
+      background: linear-gradient(180deg, ${hexToRgba(color, 0.55)}, ${hexToRgba(color, 0.25)});
+      border: 2px solid rgba(255,255,255,0.35);
+      box-shadow: 0 7px 0 rgba(0,0,0,0.5), inset 0 2px 8px rgba(255,255,255,0.18);
+      display: flex; align-items: flex-end; justify-content: center; padding-bottom: 16px; box-sizing: border-box;
+      transition: transform 0.05s ease, box-shadow 0.05s ease;
+    `;
+    const text = document.createElement('div');
+    text.textContent = label;
+    text.style.cssText = `color:${CSS_COLORS.textPrimary}; font:800 13px 'Segoe UI', Roboto, sans-serif; letter-spacing:0.05em; user-select:none;`;
+    pad.appendChild(text);
+    wrap.appendChild(pad);
+
+    const setActive = (active: boolean) => {
+      pad.style.transform = active ? 'translateY(9px)' : 'translateY(0)';
+      pad.style.boxShadow = active
+        ? '0 2px 0 rgba(0,0,0,0.5), inset 0 2px 12px rgba(255,255,255,0.3)'
+        : '0 7px 0 rgba(0,0,0,0.5), inset 0 2px 8px rgba(255,255,255,0.18)';
+      this.state.throttle = active ? onValue : this.state.throttle === onValue ? 0 : this.state.throttle;
+    };
+    wrap.addEventListener('pointerdown', (e) => {
+      wrap.setPointerCapture(e.pointerId);
+      setActive(true);
+    });
+    wrap.addEventListener('pointerup', () => setActive(false));
+    wrap.addEventListener('pointercancel', () => setActive(false));
+  }
+
   private buildButton(label: string, right: string, bottom: string, size: number, color: string, field: 'throttle' | 'handbrake' | 'nitro', onValue: number): void {
     const btn = document.createElement('div');
     btn.textContent = label;
@@ -126,7 +170,7 @@ export class TouchControls3D {
       position: absolute; right: ${right}; bottom: ${bottom}; width: ${size}px; height: ${size}px;
       transform: translate(50%, 50%); border-radius: 50%; display: flex; align-items: center; justify-content: center;
       background: ${hexToRgba(color, 0.35)}; border: 2px solid rgba(255,255,255,0.4); color: ${CSS_COLORS.textPrimary};
-      font: 700 12px 'Segoe UI', Roboto, sans-serif; letter-spacing: 0.03em; user-select: none;
+      font: 700 11px 'Segoe UI', Roboto, sans-serif; letter-spacing: 0.03em; user-select: none; text-align: center;
       pointer-events: auto; touch-action: none;
     `;
     this.root.appendChild(btn);

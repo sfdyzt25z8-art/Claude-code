@@ -83,6 +83,7 @@ export class ResultsScene extends Phaser.Scene {
       y += 34;
     };
     line('Race Time', formatTime(result.raceTimeMs));
+    if (result.penaltySeconds > 0) line('Penalties', `+${result.penaltySeconds}s`);
     if (result.bestLapMs) line('Best Lap', formatTime(result.bestLapMs));
     if (result.driftScore > 0) line('Drift Score', `${result.driftScore}`);
     if (result.stuntScore > 0) line('Stunt Score', `${result.stuntScore}`);

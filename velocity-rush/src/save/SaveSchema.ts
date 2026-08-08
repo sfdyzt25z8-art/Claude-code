@@ -52,6 +52,8 @@ export interface SaveData {
   version: number;
   profile: {
     name: string;
+    gender: 'male' | 'female' | 'unspecified';
+    onboarded: boolean;
     level: number;
     xp: number;
     coins: number;
@@ -82,7 +84,7 @@ export function createDefaultSave(): SaveData {
   const defaultCarId = getDefaultCarId();
   return {
     version: SAVE_VERSION,
-    profile: { name: 'Racer', level: 1, xp: 0, coins: 5000, trophies: 0 },
+    profile: { name: 'Racer', gender: 'unspecified', onboarded: false, level: 1, xp: 0, coins: 5000, trophies: 0 },
     garage: {
       ownedCarIds: [defaultCarId],
       selectedCarId: defaultCarId,

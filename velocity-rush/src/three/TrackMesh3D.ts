@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { TrackGeometry } from '../tracks/TrackGeometry';
-import type { ObstacleType, TrackTheme } from '../tracks/TrackTypes';
+import type { TrackTheme } from '../tracks/TrackTypes';
 import { seededRng } from '../utils/RNG';
 import { WORLD_SCALE } from './Scale3D';
 
@@ -32,6 +32,7 @@ function decorationKindsFor(theme: TrackTheme): ('tree' | 'palm' | 'cactus' | 'r
     beach: ['palm', 'rock'], snow: ['tree', 'rock'], volcano: ['rock'], nightcity: ['building'],
     highway: ['tree'], industrial: ['building'], canyon: ['rock'], harbor: ['building'],
     airport: ['building'], stadium: ['building'], countryside: ['tree', 'rock'],
+    f1street: ['building'], f1speed: ['building', 'tree'],
   };
   return map[theme];
 }
@@ -93,63 +94,6 @@ function buildDecorationPrototype(kind: 'tree' | 'palm' | 'cactus' | 'rock' | 'b
   return group;
 }
 
-const OBSTACLE_COLORS: Record<ObstacleType, number> = {
-  cone: 0xff6a2e, barrier: 0xe9f3ff, rock: 0x8a7a6a, tree: 0x2f5c33, crate: 0xb98546,
-  puddle: 0x4facfe, signpost: 0xffc371, barrel: 0xff5f6d,
-};
-
-function buildObstacleMesh(type: ObstacleType, radius: number): THREE.Object3D {
-  const color = OBSTACLE_COLORS[type];
-  const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.7 });
-  switch (type) {
-    case 'cone': {
-      const m = new THREE.Mesh(new THREE.ConeGeometry(radius * 0.5, radius, 10), mat);
-      m.position.y = radius / 2;
-      return m;
-    }
-    case 'barrel': {
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.5, radius * 0.5, radius * 1.3, 10), mat);
-      m.position.y = (radius * 1.3) / 2;
-      return m;
-    }
-    case 'barrier': {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(radius * 2.4, radius * 0.7, radius * 0.5), mat);
-      m.position.y = (radius * 0.7) / 2;
-      return m;
-    }
-    case 'crate': {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(radius * 1.4, radius * 1.4, radius * 1.4), mat);
-      m.position.y = (radius * 1.4) / 2;
-      return m;
-    }
-    case 'rock': {
-      const m = new THREE.Mesh(new THREE.IcosahedronGeometry(radius * 0.7, 0), mat);
-      m.position.y = radius * 0.5;
-      return m;
-    }
-    case 'tree': {
-      return buildDecorationPrototype('tree', 0x2f5c33);
-    }
-    case 'signpost': {
-      const group = new THREE.Group();
-      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, radius * 1.6, 6), new THREE.MeshStandardMaterial({ color: 0x8a8a8a }));
-      pole.position.y = (radius * 1.6) / 2;
-      const sign = new THREE.Mesh(new THREE.BoxGeometry(radius * 1.2, radius * 0.7, 0.08), mat);
-      sign.position.y = radius * 1.4;
-      group.add(pole, sign);
-      return group;
-    }
-    case 'puddle': {
-      const geo = new THREE.CircleGeometry(radius * 1.4, 12);
-      geo.rotateX(-Math.PI / 2);
-      const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, transparent: true, opacity: 0.55, roughness: 0.1, metalness: 0.3 }));
-      m.position.y = 0.02;
-      return m;
-    }
-  }
-}
-
-const HARD_OBSTACLES = new Set<ObstacleType>(['cone', 'barrier', 'rock', 'tree', 'crate', 'barrel', 'signpost']);
 
 /**
  * Builds the 3D road ribbon, ground plane, theme-appropriate scenery, and
@@ -257,27 +201,8 @@ export function buildTrackMesh3D(geo: TrackGeometry): BuiltTrack3D {
     placed++;
   }
 
-  // Obstacles — collider metadata stays in raw simulation units for CollisionSystem;
-  // only the mesh transform is converted to meter-scale Three.js world units.
-  const obstacles: ObstacleCollider3D[] = def.obstacles.map((o) => {
-    const p = geo.getPointAtProgress(o.at);
-    const normal = geo.getNormalAtProgress(o.at);
-    const width = geo.getWidthAtProgress(o.at);
-    const x = p.x + normal.x * o.offset * (width / 2 - o.radius);
-    const z = p.y + normal.y * o.offset * (width / 2 - o.radius);
-    const worldRadius = Math.max(0.3, o.radius * WORLD_SCALE);
-    const mesh = buildObstacleMesh(o.type, worldRadius);
-    mesh.position.x = x * WORLD_SCALE;
-    mesh.position.z = z * WORLD_SCALE;
-    mesh.traverse((c) => {
-      if (c instanceof THREE.Mesh) {
-        c.castShadow = o.type !== 'puddle';
-        c.receiveShadow = true;
-      }
-    });
-    group.add(mesh);
-    return { object: mesh, position: { x, y: z }, radius: o.radius, hard: HARD_OBSTACLES.has(o.type) };
-  });
+  // Obstacles are intentionally not built — this is a clean racing line, F1-style.
+  const obstacles: ObstacleCollider3D[] = [];
 
   return { group, obstacles, boundsRadius, center };
 }

@@ -16,7 +16,9 @@ export type TrackTheme =
   | 'harbor'
   | 'airport'
   | 'stadium'
-  | 'countryside';
+  | 'countryside'
+  | 'f1street'
+  | 'f1speed';
 
 export interface ThemePalette {
   surface: number;

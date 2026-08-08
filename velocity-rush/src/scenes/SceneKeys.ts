@@ -1,6 +1,7 @@
 export const SceneKeys = {
   Boot: 'BootScene',
   Preload: 'PreloadScene',
+  Onboarding: 'OnboardingScene',
   MainMenu: 'MainMenuScene',
   Garage: 'GarageScene',
   Shop: 'ShopScene',

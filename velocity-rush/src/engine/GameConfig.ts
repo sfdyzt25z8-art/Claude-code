@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../utils/Constants';
 import { BootScene } from '../scenes/BootScene';
 import { PreloadScene } from '../scenes/PreloadScene';
+import { OnboardingScene } from '../scenes/OnboardingScene';
 import { MainMenuScene } from '../scenes/MainMenuScene';
 import { GarageScene } from '../scenes/GarageScene';
 import { ShopScene } from '../scenes/ShopScene';
@@ -62,6 +63,7 @@ export function createGameConfig(parent: string): Phaser.Types.Core.GameConfig {
     scene: [
       BootScene,
       PreloadScene,
+      OnboardingScene,
       MainMenuScene,
       GarageScene,
       ShopScene,

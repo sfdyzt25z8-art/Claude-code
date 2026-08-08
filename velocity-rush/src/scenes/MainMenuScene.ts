@@ -71,10 +71,11 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   private buildHeader(): void {
+    const state = saveManager.getState();
+    this.add.text(GAME_WIDTH / 2, 46, `DRIVER: ${state.profile.name.toUpperCase()}`, { ...FONT.small, color: '#ffc371' }).setOrigin(0.5);
     this.add.text(GAME_WIDTH / 2, 90, 'VELOCITY RUSH', { ...FONT.h1, fontSize: '58px' }).setOrigin(0.5).setShadow(0, 4, '#000000', 8, true, true);
     this.add.text(GAME_WIDTH / 2, 142, 'Arcade Racing — Career · Drift · Nitro · Nights', FONT.small).setOrigin(0.5);
 
-    const state = saveManager.getState();
     const panel = drawPanel(this, GAME_WIDTH / 2 - 220, 170, 440, 54, { alpha: 0.7 });
     this.add.text(GAME_WIDTH / 2 - 200, 197, `Lv ${state.profile.level}`, { ...FONT.body, color: '#7fdcff' }).setOrigin(0, 0.5);
     const xpBar = new ProgressBar(this, GAME_WIDTH / 2 - 140, 190, 200, 14, COLORS.accentPrimary);

@@ -9,6 +9,7 @@ import type { VehicleInput } from '../physics/VehiclePhysics';
 export class Keyboard3D {
   private keys = new Set<string>();
   private resetWasDown = false;
+  private cameraToggleWasDown = false;
   private onKeyDown = (e: KeyboardEvent) => this.keys.add(e.code);
   private onKeyUp = (e: KeyboardEvent) => this.keys.delete(e.code);
 
@@ -56,6 +57,16 @@ export class Keyboard3D {
     const isDown = this.keys.has('KeyR') || padDown;
     const justPressed = isDown && !this.resetWasDown;
     this.resetWasDown = isDown;
+    return justPressed;
+  }
+
+  /** Edge-triggered: true only on the frame the camera-toggle key is first pressed. */
+  consumeCameraTogglePressed(): boolean {
+    const pad = navigator.getGamepads?.()[0];
+    const padDown = pad?.buttons[2]?.pressed ?? false;
+    const isDown = this.keys.has('KeyC') || padDown;
+    const justPressed = isDown && !this.cameraToggleWasDown;
+    this.cameraToggleWasDown = isDown;
     return justPressed;
   }
 

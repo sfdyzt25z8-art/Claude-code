@@ -1,10 +1,15 @@
 import * as THREE from 'three';
 
+export type CameraMode = 'chase' | 'cockpit';
+
 /**
- * Smooth 3rd-person follow camera: stays behind and above the car, looking
- * slightly ahead of it, with a small FOV kick under nitro for a sense of
- * speed. Position/look-at are exponentially smoothed (frame-rate independent)
- * rather than snapped, so it doesn't feel jittery at variable frame rates.
+ * The race camera: a smoothed 3rd-person chase view (stays behind and above
+ * the car, looking slightly ahead, with a small FOV kick under nitro) plus a
+ * rigidly-mounted 1st-person cockpit view, toggleable mid-race. Chase-mode
+ * position/look-at are exponentially smoothed (frame-rate independent)
+ * rather than snapped, so it doesn't feel jittery at variable frame rates;
+ * cockpit mode snaps directly to the car each frame since it's meant to feel
+ * rigidly attached, like a real onboard camera.
  */
 export class ChaseCamera {
   readonly camera: THREE.PerspectiveCamera;
@@ -12,6 +17,7 @@ export class ChaseCamera {
   private currentLookAt = new THREE.Vector3();
   private initialized = false;
   private currentFov = 62;
+  private mode: CameraMode = 'chase';
 
   constructor(aspect: number) {
     this.camera = new THREE.PerspectiveCamera(62, aspect, 0.1, 900);
@@ -22,11 +28,31 @@ export class ChaseCamera {
     this.camera.updateProjectionMatrix();
   }
 
+  getMode(): CameraMode {
+    return this.mode;
+  }
+
+  setMode(mode: CameraMode): void {
+    this.mode = mode;
+  }
+
+  toggleMode(): void {
+    this.mode = this.mode === 'chase' ? 'cockpit' : 'chase';
+  }
+
   update(targetPos: { x: number; y: number; z: number }, headingRad: number, speedFrac: number, dt: number, boosting: boolean): void {
+    if (this.mode === 'cockpit') {
+      this.updateCockpit(targetPos, headingRad, boosting);
+    } else {
+      this.updateChase(targetPos, headingRad, speedFrac, dt, boosting);
+    }
+  }
+
+  private updateChase(targetPos: { x: number; y: number; z: number }, headingRad: number, speedFrac: number, dt: number, boosting: boolean): void {
     const forwardX = Math.cos(headingRad);
     const forwardZ = Math.sin(headingRad);
-    const backDistance = 7.2 + speedFrac * 2.2;
-    const height = 3.0 + speedFrac * 0.4;
+    const backDistance = 8.0 + speedFrac * 2.6;
+    const height = 2.6 + speedFrac * 0.4;
 
     const desiredPos = new THREE.Vector3(
       targetPos.x - forwardX * backDistance,
@@ -35,7 +61,7 @@ export class ChaseCamera {
     );
     const desiredLookAt = new THREE.Vector3(
       targetPos.x + forwardX * 4,
-      targetPos.y + 0.9,
+      targetPos.y + 0.7,
       targetPos.z + forwardZ * 4,
     );
 
@@ -52,8 +78,25 @@ export class ChaseCamera {
 
     this.camera.position.copy(this.currentPos);
     this.camera.lookAt(this.currentLookAt);
+    this.applyFov(boosting ? 72 : 62, dt);
+  }
 
-    const targetFov = boosting ? 72 : 62;
+  private updateCockpit(targetPos: { x: number; y: number; z: number }, headingRad: number, boosting: boolean): void {
+    const forwardX = Math.cos(headingRad);
+    const forwardZ = Math.sin(headingRad);
+    const eye = new THREE.Vector3(targetPos.x + forwardX * 0.2, targetPos.y + 0.62, targetPos.z + forwardZ * 0.2);
+    const lookAt = new THREE.Vector3(targetPos.x + forwardX * 20, targetPos.y + 0.45, targetPos.z + forwardZ * 20);
+
+    this.currentPos.copy(eye);
+    this.currentLookAt.copy(lookAt);
+    this.initialized = true;
+
+    this.camera.position.copy(eye);
+    this.camera.lookAt(lookAt);
+    this.applyFov(boosting ? 84 : 76, 1); // wide, immersive FOV; snaps instantly (no dt smoothing needed for a rigid mount)
+  }
+
+  private applyFov(targetFov: number, dt: number): void {
     this.currentFov += (targetFov - this.currentFov) * Math.min(1, dt * 4);
     this.camera.fov = this.currentFov;
     this.camera.updateProjectionMatrix();

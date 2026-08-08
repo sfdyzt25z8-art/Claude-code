@@ -17,18 +17,29 @@ export class Hud3D {
   private driftEl: HTMLDivElement;
   private nitroFill: HTMLDivElement;
   private countdownEl: HTMLDivElement;
+  private toastEl!: HTMLDivElement;
+  private toastTimer: ReturnType<typeof setTimeout> | undefined;
   private minimapCanvas: HTMLCanvasElement;
   private minimapCtx: CanvasRenderingContext2D;
   private minimapScale = 1;
   private minimapWorldCenter = { x: 0, y: 0 };
   private minimapSize = 168;
 
-  constructor(private parent: HTMLElement) {
+  constructor(private parent: HTMLElement, onCameraToggle?: () => void) {
     this.root = document.createElement('div');
     this.root.style.cssText = 'position:absolute; inset:0; pointer-events:none; z-index:15; font-family: \'Segoe UI\', Roboto, system-ui, sans-serif; color:' + CSS_COLORS.textPrimary + ';';
     parent.appendChild(this.root);
 
-    const speedPanel = this.panel('left:20px; bottom:20px; width:190px; height:84px; display:flex; flex-direction:column; justify-content:center; padding-left:16px;');
+    if (onCameraToggle) {
+      const camBtn = document.createElement('button');
+      camBtn.textContent = '📷 CAM';
+      camBtn.style.cssText = `position:absolute; left:20px; top:20px; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.25); background:rgba(10,14,32,0.6); color:${CSS_COLORS.textPrimary}; font:700 13px 'Segoe UI', Roboto, sans-serif; letter-spacing:0.04em; pointer-events:auto; cursor:pointer;`;
+      camBtn.addEventListener('click', onCameraToggle);
+      this.root.appendChild(camBtn);
+    }
+
+    // Positioned above the steering wheel (bottom:20 + 164px tall + margin), so the two never overlap.
+    const speedPanel = this.panel('left:20px; bottom:210px; width:190px; height:84px; display:flex; flex-direction:column; justify-content:center; padding-left:16px;');
     this.speedEl = document.createElement('div');
     this.speedEl.style.cssText = 'font-size:38px; font-weight:800; line-height:1;';
     this.speedEl.textContent = '0';
@@ -38,10 +49,10 @@ export class Hud3D {
     speedPanel.append(this.speedEl, speedLabel);
 
     const nitroLabel = document.createElement('div');
-    nitroLabel.style.cssText = `position:absolute; left:220px; bottom:96px; font-size:11px; letter-spacing:0.08em; color:${CSS_COLORS.textMuted};`;
+    nitroLabel.style.cssText = `position:absolute; left:220px; bottom:286px; font-size:11px; letter-spacing:0.08em; color:${CSS_COLORS.textMuted};`;
     nitroLabel.textContent = 'NITRO';
     const nitroBar = document.createElement('div');
-    nitroBar.style.cssText = 'position:absolute; left:220px; bottom:80px; width:110px; height:12px; border-radius:6px; background:rgba(255,255,255,0.12); overflow:hidden;';
+    nitroBar.style.cssText = 'position:absolute; left:220px; bottom:270px; width:110px; height:12px; border-radius:6px; background:rgba(255,255,255,0.12); overflow:hidden;';
     this.nitroFill = document.createElement('div');
     this.nitroFill.style.cssText = `width:100%; height:100%; background:#ff5f9d; transition: width 0.08s linear;`;
     nitroBar.appendChild(this.nitroFill);
@@ -65,6 +76,10 @@ export class Hud3D {
     this.countdownEl = document.createElement('div');
     this.countdownEl.style.cssText = 'position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:88px; font-weight:800; text-shadow:0 4px 24px rgba(0,0,0,0.6); opacity:0; transition: opacity 0.3s;';
     this.root.appendChild(this.countdownEl);
+
+    this.toastEl = document.createElement('div');
+    this.toastEl.style.cssText = 'position:absolute; left:50%; top:150px; transform:translateX(-50%); font-size:22px; font-weight:800; text-shadow:0 2px 10px rgba(0,0,0,0.7); opacity:0; transition:opacity 0.25s; letter-spacing:0.03em;';
+    this.root.appendChild(this.toastEl);
 
     const mmWrap = this.panel(`right:20px; top:20px; width:${this.minimapSize}px; height:${this.minimapSize}px; border-radius:50%; overflow:hidden;`);
     this.minimapCanvas = document.createElement('canvas');
@@ -118,6 +133,16 @@ export class Hud3D {
 
   hideCountdown(): void {
     this.countdownEl.style.opacity = '0';
+  }
+
+  showToast(text: string, colorHex = '#ff4d5e'): void {
+    this.toastEl.textContent = text;
+    this.toastEl.style.color = colorHex;
+    this.toastEl.style.opacity = '1';
+    clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => {
+      this.toastEl.style.opacity = '0';
+    }, 1100);
   }
 
   buildMinimap(geo: TrackGeometry): void {
@@ -194,6 +219,7 @@ export class Hud3D {
   }
 
   destroy(): void {
+    clearTimeout(this.toastTimer);
     this.root.remove();
   }
 }

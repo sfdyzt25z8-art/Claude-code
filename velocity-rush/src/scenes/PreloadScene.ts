@@ -6,6 +6,7 @@ import { audioManager } from '../audio/AudioManager';
 import { progressionManager } from '../economy/ProgressionManager';
 import { liveOpsManager } from '../economy/DailyRewards';
 import { achievementManager } from '../economy/AchievementManager';
+import { saveManager } from '../save/SaveManager';
 
 /**
  * Runs one-time app startup bookkeeping (unlock syncing, daily missions,
@@ -38,7 +39,7 @@ export class PreloadScene extends Phaser.Scene {
     const proceed = () => {
       audioManager.unlock();
       audioManager.uiConfirm();
-      this.scene.start(SceneKeys.MainMenu);
+      this.scene.start(saveManager.getState().profile.onboarded ? SceneKeys.MainMenu : SceneKeys.Onboarding);
     };
 
     this.input.once('pointerdown', proceed);

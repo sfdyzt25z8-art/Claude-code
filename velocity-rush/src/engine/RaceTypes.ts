@@ -46,6 +46,7 @@ export interface RaceResultData {
   position: number;
   totalRacers: number;
   raceTimeMs: number;
+  penaltySeconds: number;
   lapTimes: number[];
   bestLapMs: number | null;
   driftScore: number;

@@ -50,6 +50,8 @@ export class Race3DScene {
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private chaseCam!: ChaseCamera;
+  private sun!: THREE.DirectionalLight;
+  private sunTarget!: THREE.Object3D;
   private canvas!: HTMLCanvasElement;
   private geo!: TrackGeometry;
   private builtTrack!: BuiltTrack3D;
@@ -83,6 +85,13 @@ export class Race3DScene {
   private survivalMinSpeed = 90;
   private sirenLights = new Map<string, { material: THREE.MeshBasicMaterial; light: THREE.PointLight }>();
 
+  private penaltySeconds = 0;
+  private lastPenaltyMs = -Infinity;
+  private offTrackPenaltyIssued = false;
+  private static readonly PENALTY_SECONDS = 3;
+  private static readonly PENALTY_COOLDOWN_MS = 4000;
+  private static readonly OFF_TRACK_PENALTY_THRESHOLD_S = 1.2;
+
   constructor(private container: HTMLElement, private config: RaceConfig, private callbacks: Race3DCallbacks) {
     this.init();
   }
@@ -106,6 +115,9 @@ export class Race3DScene {
     this.integrity = 100;
     this.survivalMinSpeed = 90;
     this.sirenLights = new Map();
+    this.penaltySeconds = 0;
+    this.lastPenaltyMs = -Infinity;
+    this.offTrackPenaltyIssued = false;
 
     this.canvas = document.createElement('canvas');
     this.canvas.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; display:block;';
@@ -116,6 +128,8 @@ export class Race3DScene {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(track.palette.offTrack);
@@ -130,7 +144,7 @@ export class Race3DScene {
 
     this.spawnVehicles(track);
 
-    this.hud = new Hud3D(this.container);
+    this.hud = new Hud3D(this.container, () => this.chaseCam.toggleMode());
     this.hud.buildMinimap(this.geo);
     this.hud.setLap(1, this.effectiveLaps());
     if (this.config.mode === 'testDrive') this.hud.setModeInfo('TEST DRIVE — Esc to return to Garage');
@@ -161,9 +175,20 @@ export class Race3DScene {
     const groundColor = night ? 0x0a0e1f : 0x3a3a2a;
     this.scene.add(new THREE.HemisphereLight(skyColor, groundColor, night ? 0.55 : 0.9));
 
-    const sun = new THREE.DirectionalLight(night ? 0x4a6bff : dusk ? 0xffb27a : 0xffffff, night ? 0.35 : dusk ? 0.9 : 1.15);
-    sun.position.set(120, 220, 80);
-    this.scene.add(sun);
+    this.sun = new THREE.DirectionalLight(night ? 0x4a6bff : dusk ? 0xffb27a : 0xffffff, night ? 0.35 : dusk ? 0.9 : 1.15);
+    this.sun.castShadow = !night; // skip the shadow pass on night tracks — the sun light itself is already dim there
+    this.sun.shadow.mapSize.set(1024, 1024);
+    this.sun.shadow.camera.near = 5;
+    this.sun.shadow.camera.far = 220;
+    const frustum = 45; // shadow camera stays centered on the player each frame (see step()) — only needs to cover the area right around the car
+    this.sun.shadow.camera.left = -frustum;
+    this.sun.shadow.camera.right = frustum;
+    this.sun.shadow.camera.top = frustum;
+    this.sun.shadow.camera.bottom = -frustum;
+    this.sun.shadow.bias = -0.0015;
+    this.sunTarget = new THREE.Object3D();
+    this.sun.target = this.sunTarget;
+    this.scene.add(this.sun, this.sunTarget);
     this.scene.add(new THREE.AmbientLight(0xffffff, night ? 0.25 : 0.4));
   }
 
@@ -305,6 +330,7 @@ export class Race3DScene {
 
       if (vehicle.isPlayer) this.updatePlayerFx(vehicle, dt);
       if (vehicle.isPolice && this.raceState === 'racing') this.applyPoliceBehavior(vehicle);
+      if (vehicle.isPlayer && throttleAllowed && this.config.mode !== 'testDrive') this.checkOffTrackPenalty(vehicle);
     }
 
     if (this.raceState === 'racing') {
@@ -315,6 +341,7 @@ export class Race3DScene {
     }
 
     if (this.keyboard.consumeResetPressed()) this.resetPlayerToTrack();
+    if (this.keyboard.consumeCameraTogglePressed()) this.chaseCam.toggleMode();
 
     const scaledPos = {
       x: this.player.state.position.x * WORLD_SCALE,
@@ -323,6 +350,11 @@ export class Race3DScene {
     };
     const speedFrac = Math.min(1.2, Math.hypot(this.player.state.velocity.x, this.player.state.velocity.y) / this.player.perf.maxSpeed);
     this.chaseCam.update(scaledPos, this.player.state.heading, speedFrac, dt, this.player.state.nitroActive);
+
+    // Keep the shadow-casting sun's frustum centered on the player — it only needs to cover the
+    // area right around the car, not the whole (potentially huge) track.
+    this.sun.position.set(scaledPos.x + 40, scaledPos.y + 70, scaledPos.z + 26);
+    this.sunTarget.position.set(scaledPos.x, scaledPos.y, scaledPos.z);
 
     this.renderer.render(this.scene, this.chaseCam.camera);
   }
@@ -409,6 +441,9 @@ export class Race3DScene {
     mesh.group.rotation.y = -state.heading;
     const wheelAngle = (state.totalDistance * WORLD_SCALE) / CAR_WHEEL_RADIUS;
     for (const wheel of mesh.wheels) wheel.rotation.x = wheelAngle;
+    // In cockpit view the camera sits inside the player's own car — hide it so we don't
+    // see the inside of the halo/tub geometry point-blank instead of the track ahead.
+    if (vehicle.isPlayer) mesh.group.visible = this.chaseCam.getMode() !== 'cockpit';
   }
 
   private onLanded(vehicle: RaceVehicle3D): void {
@@ -444,7 +479,28 @@ export class Race3DScene {
     for (const evt of [...vehicleEvents, ...obstacleEvents]) {
       const vehicle = this.vehicles.find((v) => v.id === evt.vehicleId);
       if (vehicle) vehicle.crashCount += 1;
-      if (evt.vehicleId === 'player' || evt.otherId === 'player') audioManager.crash(evt.severity);
+      if (evt.vehicleId === 'player' || evt.otherId === 'player') {
+        audioManager.crash(evt.severity);
+        if (evt.severity > 0.15 && this.config.mode !== 'testDrive') this.applyPenalty('CONTACT');
+      }
+    }
+  }
+
+  private applyPenalty(reason: string): void {
+    if (this.nowMs - this.lastPenaltyMs < Race3DScene.PENALTY_COOLDOWN_MS) return;
+    this.lastPenaltyMs = this.nowMs;
+    this.penaltySeconds += Race3DScene.PENALTY_SECONDS;
+    this.hud.showToast(`+${Race3DScene.PENALTY_SECONDS}s PENALTY — ${reason}`);
+  }
+
+  private checkOffTrackPenalty(vehicle: RaceVehicle3D): void {
+    if (vehicle.state.offTrackTime <= 0) {
+      this.offTrackPenaltyIssued = false;
+      return;
+    }
+    if (!this.offTrackPenaltyIssued && vehicle.state.offTrackTime >= Race3DScene.OFF_TRACK_PENALTY_THRESHOLD_S) {
+      this.offTrackPenaltyIssued = true;
+      this.applyPenalty('OFF TRACK');
     }
   }
 
@@ -607,7 +663,7 @@ export class Race3DScene {
     const standings = computeStandings(active);
     const position = outcome === 'eliminated' ? active.length : standings.indexOf(this.player) + 1;
     const totalRacers = this.vehicles.length;
-    const raceTimeMs = (this.player.finishTimeMs ?? this.nowMs) - this.raceStartMs;
+    const raceTimeMs = (this.player.finishTimeMs ?? this.nowMs) - this.raceStartMs + this.penaltySeconds * 1000;
     const driftScore = Math.round(this.player.state.driftScoreAccum);
     const cleanDriving = this.player.crashCount === 0;
 
@@ -686,6 +742,7 @@ export class Race3DScene {
       position,
       totalRacers,
       raceTimeMs,
+      penaltySeconds: this.penaltySeconds,
       lapTimes: this.player.lapTimes,
       bestLapMs: this.player.bestLapTimeMs,
       driftScore,
