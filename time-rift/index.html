@@ -2,10 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>TIME RIFT</title>
 <meta name="description" content="TIME RIFT — a 2D action-puzzle platformer built around time-clone playback." />
+<meta name="theme-color" content="#05060f" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="TIME RIFT" />
+<meta name="format-detection" content="telephone=no" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2300e5ff%22/></svg>" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%2305060f%22/><circle cx=%2250%22 cy=%2250%22 r=%2234%22 fill=%22none%22 stroke=%22%2300e5ff%22 stroke-width=%228%22/><circle cx=%2250%22 cy=%2250%22 r=%2210%22 fill=%22%2300e5ff%22/></svg>" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -155,6 +162,12 @@
     </div>
   </div>
 </section>
+
+<!-- ======================= ROTATE-DEVICE PROMPT ======================= -->
+<div id="screen-rotate">
+  <div class="rotate-icon">&#8635;</div>
+  <p>Rotate your device to play TIME RIFT in landscape</p>
+</div>
 
 <script src="js/storage/SaveSystem.js"></script>
 <script src="js/audio/AudioManager.js"></script>

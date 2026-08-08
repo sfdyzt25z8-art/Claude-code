@@ -44,7 +44,7 @@
     this.renderLevelGrid();
     this.applySettingsToInputs();
     if (Input.isTouchDevice) {
-      this.touchControls.classList.add('active', 'touch-capable');
+      this.touchControls.classList.add('active');
       this.controlsHint.style.display = 'none';
     }
   };

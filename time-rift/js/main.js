@@ -88,9 +88,39 @@
     window.addEventListener('keydown', start);
   }
 
+  // iOS Safari ignores the viewport meta tag's zoom lock for pinch gestures;
+  // these WebKit-only events are the actual way to suppress it.
+  function preventPinchZoom() {
+    document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive: false });
+    document.addEventListener('gesturechange', function (e) { e.preventDefault(); }, { passive: false });
+  }
+
+  // The game is a landscape platformer; on phones (not tablets, which have
+  // room either way) prompt for a rotate while gameplay is actually active.
+  function initRotateGuard() {
+    var rotateEl = document.getElementById('screen-rotate');
+    var gameScreen = document.getElementById('screen-game');
+
+    function check() {
+      var inGame = gameScreen.classList.contains('active');
+      var portrait = window.innerHeight > window.innerWidth;
+      var isPhoneSized = Math.min(window.innerWidth, window.innerHeight) < 620;
+      var shouldShow = inGame && portrait && isPhoneSized;
+      rotateEl.classList.toggle('active', shouldShow);
+      if (shouldShow && window.TimeRiftGame) window.TimeRiftGame.pause();
+    }
+
+    window.addEventListener('resize', check);
+    window.addEventListener('orientationchange', check);
+    new MutationObserver(check).observe(gameScreen, { attributes: true, attributeFilter: ['class'] });
+    check();
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     initMenuBackground();
     armAudioOnGesture();
+    preventPinchZoom();
     window.TimeRiftGame = new Game();
+    initRotateGuard();
   });
 })();

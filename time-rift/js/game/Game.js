@@ -31,14 +31,22 @@
 
     this._resizeCanvas();
     window.addEventListener('resize', this._resizeCanvas.bind(this));
+    window.addEventListener('orientationchange', this._resizeCanvas.bind(this));
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this._resizeCanvas.bind(this));
+    }
 
     UIManager.init(this);
     requestAnimationFrame(this._loop.bind(this));
   }
 
   Game.prototype._resizeCanvas = function () {
-    var maxW = window.innerWidth;
-    var maxH = window.innerHeight;
+    // visualViewport tracks the actual visible area on iOS Safari, where
+    // innerWidth/innerHeight can lag behind the on-screen keyboard or the
+    // dynamic toolbar collapsing/expanding.
+    var vv = window.visualViewport;
+    var maxW = vv ? vv.width : window.innerWidth;
+    var maxH = vv ? vv.height : window.innerHeight;
     var scale = Math.min(maxW / CANVAS_W, maxH / CANVAS_H);
     var cssW = Math.floor(CANVAS_W * scale);
     var cssH = Math.floor(CANVAS_H * scale);
