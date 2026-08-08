@@ -177,6 +177,9 @@
       doors: [
         { id: 'door1', x: 700, y: GY - 120, w: 30, h: 120, switchIds: ['sw1'] }
       ],
+      barriers: [
+        { x: 820, y: GY - 120, w: 26, h: 120, onTime: 1.2, offTime: 1.2, phase: 0.6 }
+      ],
       portal: { x: W - 100, y: GY - 90, w: 56, h: 90 }
     },
 
@@ -202,6 +205,9 @@
       doors: [
         { id: 'gateA', x: 340, y: GY - 120, w: 30, h: 120, switchIds: ['swA'] },
         { id: 'gateFinal', x: 1400, y: GY - 120, w: 30, h: 120, switchIds: ['swA', 'swB'], requireAll: true }
+      ],
+      barriers: [
+        { x: 1310, y: GY - 120, w: 26, h: 120, onTime: 1, offTime: 1, phase: 0 }
       ],
       enemies: [
         { type: 'walker', x: 500, y: GY - 34, patrolMinX: 460, patrolMaxX: 620 },

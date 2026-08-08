@@ -8,6 +8,7 @@ on:
       - "halftime-snack-preorder/**"
       - "velocity-rush/**"
       - "focusflow/**"
+      - "time-rift/**"
       - ".github/workflows/pages-deploy.yml"
   workflow_dispatch:
 
@@ -74,11 +75,12 @@ jobs:
       # CEO Empire is the root site; other apps are published under their own subpath.
       - name: Assemble combined Pages site
         run: |
-          mkdir -p site/halftime-snack-preorder site/velocity-rush site/focusflow
+          mkdir -p site/halftime-snack-preorder site/velocity-rush site/focusflow site/time-rift
           cp -r ceo-empire/dist/. site/
           cp halftime-snack-preorder/index.html halftime-snack-preorder/app.js halftime-snack-preorder/style.css site/halftime-snack-preorder/
           cp -r velocity-rush/dist/. site/velocity-rush/
           cp -r focusflow/dist/. site/focusflow/
+          cp -r time-rift/index.html time-rift/css time-rift/js site/time-rift/
 
       - uses: actions/upload-pages-artifact@v3
         with:
